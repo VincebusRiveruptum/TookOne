@@ -47,6 +47,7 @@ namespace animationApp {
         public void createFile() {
             // We create the new file
             main.SetEditor(new Editor((int)widthNumeric.Value, (int)heightNumeric.Value, colorDepthCombo.SelectedIndex));
+            main.unlockToolStripItems();
             this.Close();
         }
 

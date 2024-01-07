@@ -30,6 +30,8 @@ namespace animationApp {
                     break;
             }
 
+            fillColor();
+
             this.width = width;
             this.height = height;
         }
@@ -37,6 +39,11 @@ namespace animationApp {
             this.workspace = bmp;
             this.width = bmp.Width;
             this.height = bmp.Height;
+        }
+
+        public void fillColor() {
+            Graphics g = Graphics.FromImage(this.workspace);
+            g.Clear(Color.White);
         }
 
         public Bitmap getBitmap() {
