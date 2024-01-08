@@ -11,6 +11,9 @@ namespace animationApp {
 
     public class Editor {
         private Bitmap workspace;
+        private Stack<Bitmap> undoStates;
+        private Stack<Bitmap> redoStates;
+
         private int width;
         private int height;
         public Editor(int width, int height, int colorbpp) {
@@ -32,6 +35,9 @@ namespace animationApp {
 
             fillColor();
 
+            this.undoStates = new Stack<Bitmap>();
+            this.redoStates = new Stack<Bitmap>();
+                        
             this.width = width;
             this.height = height;
         }
@@ -39,6 +45,8 @@ namespace animationApp {
             this.workspace = bmp;
             this.width = bmp.Width;
             this.height = bmp.Height;
+            this.undoStates = new Stack<Bitmap>();
+            this.redoStates = new Stack<Bitmap>();
         }
 
         public void fillColor() {
@@ -48,6 +56,68 @@ namespace animationApp {
 
         public Bitmap getBitmap() {
             return this.workspace;
+        }
+
+        public Bitmap popUndoState() {
+            return this.undoStates.Pop();
+        }
+
+        public Bitmap popRedoState() {
+            return this.redoStates.Pop();
+        }
+
+        public void pushUndoState(Bitmap bmp) {
+            if(bmp != null) {
+                this.undoStates.Push(bmp);
+            }
+        }
+
+        public void pushRedoState(Bitmap bmp) {
+            if (bmp != null) {
+                this.redoStates.Push(bmp);
+            }                       
+        }
+
+        public Bitmap undo() {
+            Bitmap bmp;
+            
+            if(this.undoStates.Count > 0) {
+                bmp = this.undoStates.Pop();
+                this.redoStates.Push(bmp);
+                return bmp;
+
+            } else {
+                return null;
+            }
+            
+        }
+
+        public Bitmap redo() {
+            Bitmap bmp;
+
+            if(this.redoStates.Count > 0) { 
+                bmp = this.redoStates.Pop();
+                this.undoStates.Push(bmp);
+                return bmp;
+            } else {
+                return null;
+            }
+
+        }
+
+        public bool isUndoEmpty() {
+            if(undoStates.Count == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        public bool isRedoEmpty() {
+            if(redoStates.Count == 0) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
         public int getWidth() { 

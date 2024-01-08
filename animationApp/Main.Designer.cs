@@ -26,14 +26,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             menuStrip1 = new MenuStrip();
-            fileToolStripMenuItem = new ToolStripMenuItem();
-            newToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem7 = new ToolStripSeparator();
-            openToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem2 = new ToolStripMenuItem();
-            saveToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem1 = new ToolStripSeparator();
-            quitToolStripMenuItem = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
             undoToolStripMenuItem = new ToolStripMenuItem();
             redoToolStripMenuItem = new ToolStripMenuItem();
@@ -43,6 +35,14 @@
             pasteToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem4 = new ToolStripSeparator();
             preferencesToolStripMenuItem = new ToolStripMenuItem();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            newToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem7 = new ToolStripSeparator();
+            openToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
+            saveToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            quitToolStripMenuItem = new ToolStripMenuItem();
             viewToolStripMenuItem = new ToolStripMenuItem();
             fillPatternsToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem5 = new ToolStripSeparator();
@@ -76,8 +76,10 @@
             statusStrip1 = new StatusStrip();
             tssInfo = new ToolStripStatusLabel();
             tssMouseCoords = new ToolStripStatusLabel();
+            tssToolUsed = new ToolStripStatusLabel();
             mainPictureBox = new PictureBox();
             toolStripContainer1 = new ToolStripContainer();
+            panel1 = new Panel();
             toolStrip2 = new ToolStrip();
             tsButtonPencil = new ToolStripButton();
             tsButtonDrawRectangle = new ToolStripButton();
@@ -89,6 +91,7 @@
             toolStripContainer1.ContentPanel.SuspendLayout();
             toolStripContainer1.TopToolStripPanel.SuspendLayout();
             toolStripContainer1.SuspendLayout();
+            panel1.SuspendLayout();
             toolStrip2.SuspendLayout();
             SuspendLayout();
             // 
@@ -102,58 +105,6 @@
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             menuStrip1.ItemClicked += menuStrip1_ItemClicked;
-            // 
-            // fileToolStripMenuItem
-            // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, toolStripMenuItem7, openToolStripMenuItem, toolStripMenuItem2, saveToolStripMenuItem, toolStripMenuItem1, quitToolStripMenuItem });
-            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            fileToolStripMenuItem.Size = new Size(37, 20);
-            fileToolStripMenuItem.Text = "File";
-            fileToolStripMenuItem.Click += fileToolStripMenuItem_Click;
-            // 
-            // newToolStripMenuItem
-            // 
-            newToolStripMenuItem.Name = "newToolStripMenuItem";
-            newToolStripMenuItem.Size = new Size(123, 22);
-            newToolStripMenuItem.Text = "New";
-            newToolStripMenuItem.Click += newToolStripMenuItem_Click;
-            // 
-            // toolStripMenuItem7
-            // 
-            toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.Size = new Size(120, 6);
-            // 
-            // openToolStripMenuItem
-            // 
-            openToolStripMenuItem.Name = "openToolStripMenuItem";
-            openToolStripMenuItem.Size = new Size(123, 22);
-            openToolStripMenuItem.Text = "Open...";
-            openToolStripMenuItem.Click += openToolStripMenuItem_Click;
-            // 
-            // toolStripMenuItem2
-            // 
-            toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(123, 22);
-            toolStripMenuItem2.Text = "Save";
-            // 
-            // saveToolStripMenuItem
-            // 
-            saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            saveToolStripMenuItem.Size = new Size(123, 22);
-            saveToolStripMenuItem.Text = "Save As...";
-            saveToolStripMenuItem.Click += saveToolStripMenuItem_Click;
-            // 
-            // toolStripMenuItem1
-            // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(120, 6);
-            // 
-            // quitToolStripMenuItem
-            // 
-            quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            quitToolStripMenuItem.Size = new Size(123, 22);
-            quitToolStripMenuItem.Text = "Exit";
-            quitToolStripMenuItem.Click += quitToolStripMenuItem_Click;
             // 
             // editToolStripMenuItem
             // 
@@ -207,6 +158,59 @@
             preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
             preferencesToolStripMenuItem.Size = new Size(144, 22);
             preferencesToolStripMenuItem.Text = "Preferences...";
+            preferencesToolStripMenuItem.Click += preferencesToolStripMenuItem_Click;
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, toolStripMenuItem7, openToolStripMenuItem, toolStripMenuItem2, saveToolStripMenuItem, toolStripMenuItem1, quitToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "File";
+            fileToolStripMenuItem.Click += fileToolStripMenuItem_Click;
+            // 
+            // newToolStripMenuItem
+            // 
+            newToolStripMenuItem.Name = "newToolStripMenuItem";
+            newToolStripMenuItem.Size = new Size(180, 22);
+            newToolStripMenuItem.Text = "New";
+            newToolStripMenuItem.Click += newToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem7
+            // 
+            toolStripMenuItem7.Name = "toolStripMenuItem7";
+            toolStripMenuItem7.Size = new Size(177, 6);
+            // 
+            // openToolStripMenuItem
+            // 
+            openToolStripMenuItem.Name = "openToolStripMenuItem";
+            openToolStripMenuItem.Size = new Size(180, 22);
+            openToolStripMenuItem.Text = "Open...";
+            openToolStripMenuItem.Click += openToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(180, 22);
+            toolStripMenuItem2.Text = "Save";
+            // 
+            // saveToolStripMenuItem
+            // 
+            saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            saveToolStripMenuItem.Size = new Size(180, 22);
+            saveToolStripMenuItem.Text = "Save As...";
+            saveToolStripMenuItem.Click += saveToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(177, 6);
+            // 
+            // quitToolStripMenuItem
+            // 
+            quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            quitToolStripMenuItem.Size = new Size(180, 22);
+            quitToolStripMenuItem.Text = "Exit";
+            quitToolStripMenuItem.Click += quitToolStripMenuItem_Click;
             // 
             // viewToolStripMenuItem
             // 
@@ -221,6 +225,7 @@
             fillPatternsToolStripMenuItem.Name = "fillPatternsToolStripMenuItem";
             fillPatternsToolStripMenuItem.Size = new Size(201, 22);
             fillPatternsToolStripMenuItem.Text = "Fill Patterns";
+            fillPatternsToolStripMenuItem.Click += fillPatternsToolStripMenuItem_Click;
             // 
             // toolStripMenuItem5
             // 
@@ -232,6 +237,7 @@
             eToolStripMenuItem.Name = "eToolStripMenuItem";
             eToolStripMenuItem.Size = new Size(201, 22);
             eToolStripMenuItem.Text = "Edit Palette...";
+            eToolStripMenuItem.Click += eToolStripMenuItem_Click;
             // 
             // detectUsedColorsToolStripMenuItem
             // 
@@ -369,6 +375,7 @@
             tsButtonUndo.Name = "tsButtonUndo";
             tsButtonUndo.Size = new Size(23, 22);
             tsButtonUndo.Text = "Undo";
+            tsButtonUndo.Click += tsButtonUndo_Click;
             // 
             // tsButtonRedo
             // 
@@ -378,6 +385,7 @@
             tsButtonRedo.Name = "tsButtonRedo";
             tsButtonRedo.Size = new Size(23, 22);
             tsButtonRedo.Text = "Redo";
+            tsButtonRedo.Click += tsButtonRedo_Click;
             // 
             // toolStripSeparator3
             // 
@@ -442,7 +450,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { tssInfo, tssMouseCoords });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { tssInfo, tssMouseCoords, tssToolUsed });
             statusStrip1.Location = new Point(0, 570);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.RenderMode = ToolStripRenderMode.ManagerRenderMode;
@@ -463,15 +471,21 @@
             tssMouseCoords.Size = new Size(43, 17);
             tssMouseCoords.Text = "Mouse";
             // 
+            // tssToolUsed
+            // 
+            tssToolUsed.Name = "tssToolUsed";
+            tssToolUsed.Size = new Size(29, 17);
+            tssToolUsed.Text = "Tool";
+            // 
             // mainPictureBox
             // 
             mainPictureBox.BackColor = SystemColors.AppWorkspace;
             mainPictureBox.BackgroundImageLayout = ImageLayout.Center;
+            mainPictureBox.BorderStyle = BorderStyle.FixedSingle;
             mainPictureBox.Cursor = Cursors.Cross;
-            mainPictureBox.Dock = DockStyle.Fill;
-            mainPictureBox.Location = new Point(0, 0);
+            mainPictureBox.Location = new Point(5, 5);
             mainPictureBox.Name = "mainPictureBox";
-            mainPictureBox.Size = new Size(844, 496);
+            mainPictureBox.Size = new Size(0, 0);
             mainPictureBox.TabIndex = 3;
             mainPictureBox.TabStop = false;
             mainPictureBox.Click += mainPictureBox_Click;
@@ -489,7 +503,7 @@
             // 
             // toolStripContainer1.ContentPanel
             // 
-            toolStripContainer1.ContentPanel.Controls.Add(mainPictureBox);
+            toolStripContainer1.ContentPanel.Controls.Add(panel1);
             toolStripContainer1.ContentPanel.Size = new Size(844, 496);
             toolStripContainer1.Dock = DockStyle.Fill;
             toolStripContainer1.Location = new Point(0, 24);
@@ -502,6 +516,20 @@
             // 
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip1);
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip2);
+            // 
+            // panel1
+            // 
+            panel1.AutoScroll = true;
+            panel1.BackColor = SystemColors.AppWorkspace;
+            panel1.Controls.Add(mainPictureBox);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(0, 0);
+            panel1.Margin = new Padding(0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(844, 496);
+            panel1.TabIndex = 4;
+            panel1.SizeChanged += panel1_SizeChanged;
+            panel1.Paint += panel1_Paint;
             // 
             // toolStrip2
             // 
@@ -574,6 +602,7 @@
             toolStripContainer1.TopToolStripPanel.PerformLayout();
             toolStripContainer1.ResumeLayout(false);
             toolStripContainer1.PerformLayout();
+            panel1.ResumeLayout(false);
             toolStrip2.ResumeLayout(false);
             toolStrip2.PerformLayout();
             ResumeLayout(false);
@@ -640,5 +669,7 @@
         private ToolStripMenuItem nextFrameToolStripMenuItem;
         private ToolStripSeparator toolStripMenuItem7;
         private ToolStripStatusLabel tssMouseCoords;
+        private ToolStripStatusLabel tssToolUsed;
+        private Panel panel1;
     }
 }

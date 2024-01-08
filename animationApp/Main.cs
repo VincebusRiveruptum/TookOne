@@ -4,20 +4,7 @@ using System.Windows.Forms;
 
 namespace animationApp {
     public partial class Main : Form {
-        private Editor editor;
-        private bool isDrawing;
-        private Point lastPoint;
-        private Graphics editorLayer;
-        private int selectedTool;
 
-        public Main() {
-            InitializeComponent();
-            this.isDrawing = false;
-            this.lastPoint = new Point();
-            this.selectedTool = 0;
-
-            mainPictureBox.Enabled = false;
-        }
 
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
@@ -31,104 +18,6 @@ namespace animationApp {
             openAboutDialog();
         }
 
-        private void newFile() {
-            // Verify if a file was already created
-            if(verifyOpenedFile()) {
-                NewFileDialog newFileDialog = new NewFileDialog(this);
-                newFileDialog.ShowDialog();
-                mainPictureBox.Enabled = true;
-            }
-            // Open new file dialog.
-        }
-
-        public void openFile() {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "BMP File | *.bmp";
-
-            // We open a file, first we open the open file common dialog
-            if(openFileDialog.ShowDialog() == DialogResult.OK) {
-                try {
-
-                    editor = new Editor(new Bitmap(openFileDialog.FileName));
-                    mainPictureBox.Image = editor.getBitmap();
-                    unlockToolStripItems();
-                    mainPictureBox.Enabled = true;
-
-                } catch(SecurityException ex) {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-
-        }
-
-        public void saveFile() {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "BMP File | *.bmp";
-
-            // We open a file, first we open the open file common dialog
-            if(saveFileDialog.ShowDialog() == DialogResult.OK) {
-                try {
-                    editor.getBitmap().Save(saveFileDialog.FileName);
-
-
-                } catch(SecurityException ex) {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-        }
-
-        public bool verifyOpenedFile() {
-            DialogResult result;
-            if(editor != null) {
-                result = MessageBox.Show("There is an already opened file in the editor, continue?", "Information", MessageBoxButtons.YesNo);
-
-                if(result == DialogResult.Yes) {
-                    return true;
-                } else {
-                    return false;
-                }
-
-                return true;
-            } else {
-                result = DialogResult.None;
-                return true;
-            }
-        }
-
-        public void openAboutDialog() {
-            AboutDialog aboutDialog = new AboutDialog();
-            aboutDialog.ShowDialog();
-        }
-
-        public void unlockToolStripItems() {
-            if(editor != null) {
-                for(int i = 0; i < toolStrip1.Items.Count; i++) {
-                    toolStrip1.Items[i].Enabled = true;
-                }
-            }
-            toolStrip2.Enabled = true;
-        }
-
-        public void lockToolStripItems() {
-            if(editor == null) {
-                // Lock all toolStrip buttons if no file has been opened yet.
-                for(int i = 2; i < toolStrip1.Items.Count; i++) {
-                    toolStrip1.Items[i].Enabled = false;
-                }
-            }
-
-            toolStrip2.Enabled = false;
-        }
-
-        // Creates everything related to the color palette
-        public bool createColorPalette() {
-            // Get file 'editor' color set
-            // Set color palette controls
-            // Show color palette controls
-            return true;
-        }
-
-        /* ========================================================================================================= */
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e) {
             openFile();
@@ -152,18 +41,6 @@ namespace animationApp {
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e) {
             newFile();
-        }
-
-        // Setters & getters
-        public void SetEditor(Editor editor) {
-            this.editor = editor;
-
-            // We update the pictureBox with the new picture created
-            mainPictureBox.Image = editor.getBitmap();
-        }
-
-        Editor GetEditor() {
-            return this.editor;
         }
 
         private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
@@ -223,7 +100,7 @@ namespace animationApp {
                 statusStrip1.Items["tssMouseCoords"].Text = "(X:" + e.X + "," + "Y:" + e.Y + ")";
 
             }
-           
+
             switch(this.selectedTool) {
                 case 0: {
                         pencilTool(sender, e);
@@ -237,38 +114,32 @@ namespace animationApp {
             }
         }
 
-        private void pencilTool(object sender, MouseEventArgs e) {
-            if(this.isDrawing == true) {
-                using(Graphics g = Graphics.FromImage(mainPictureBox.Image)) {
-                    g.DrawLine(Pens.Black, lastPoint, e.Location);
-
-                }
-                lastPoint = e.Location;
-                mainPictureBox.Invalidate();
-            }
-        }
-
-        private void drawRectangleTool(object sender, MouseEventArgs e) {
-            if(this.isDrawing == true) {
-                // Draw on editor layer
-                editorLayer = Graphics.FromImage(mainPictureBox.Image);
-                editorLayer.DrawRectangle(Pens.Black, new Rectangle(lastPoint, new Size(e.Location.X - lastPoint.X, e.Location.Y - lastPoint.Y)));
-                                    
-                //lastPoint = e.Location;
-                mainPictureBox.Invalidate();
-            } else {
-                // Draw on bitmap on click release
-
-            }
-        }
-
         private void mainPictureBox_MouseDown(object sender, MouseEventArgs e) {
+            //We save the current state to the undo history.
+            if(this.isDrawing == false) {
+                editor.pushUndoState(new Bitmap(mainPictureBox.Image));
+                checkUndoRedo();
+            }
+
             this.isDrawing = true;
             this.lastPoint = e.Location;
+
+
+            statusStrip1.Items["tssToolUsed"].Text = "You are using tool " + selectedTool + ".";
+
         }
 
         private void mainPictureBox_MouseUp(object sender, MouseEventArgs e) {
+
+            if(this.isDrawing == true) {
+                editor.pushRedoState(new Bitmap(mainPictureBox.Image));
+                checkUndoRedo();
+            }
+
             this.isDrawing = false;
+
+            statusStrip1.Items["tssToolUsed"].Text = "You finished using tool " + selectedTool + ".";
+
         }
 
         private void toolStripContainer1_TopToolStripPanel_Click(object sender, EventArgs e) {
@@ -346,6 +217,38 @@ namespace animationApp {
 
         private void toolStripStatusLabel2_Click(object sender, EventArgs e) {
 
+        }
+
+        private void tsButtonUndo_Click(object sender, EventArgs e) {
+            undo();
+        }
+
+        private void tsButtonRedo_Click(object sender, EventArgs e) {
+            redo();
+        }
+
+        private void fillPatternsToolStripMenuItem_Click(object sender, EventArgs e) {
+            FillPatternDialog fillPatternDialog = new FillPatternDialog();
+            fillPatternDialog.ShowDialog();
+        }
+
+        private void eToolStripMenuItem_Click(object sender, EventArgs e) {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e) {
+
+        }
+
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e) {
+            PreferencesDialog preferencesDialog = new PreferencesDialog(this);
+            preferencesDialog.ShowDialog();
+        }
+
+        private void panel1_SizeChanged(object sender, EventArgs e) {
+            if(appProperties.getCenteredWorkspace() == true) {
+                mainPictureBox.Location = new Point((int) (panel1.Width / 2) - (mainPictureBox.Width / 2), (int)(panel1.Height / 2) - ( mainPictureBox.Height / 2));
+            }
         }
     }
 }
