@@ -26,6 +26,14 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            newToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem7 = new ToolStripSeparator();
+            openToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
+            saveToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            quitToolStripMenuItem = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
             undoToolStripMenuItem = new ToolStripMenuItem();
             redoToolStripMenuItem = new ToolStripMenuItem();
@@ -35,14 +43,6 @@
             pasteToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem4 = new ToolStripSeparator();
             preferencesToolStripMenuItem = new ToolStripMenuItem();
-            fileToolStripMenuItem = new ToolStripMenuItem();
-            newToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem7 = new ToolStripSeparator();
-            openToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem2 = new ToolStripMenuItem();
-            saveToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem1 = new ToolStripSeparator();
-            quitToolStripMenuItem = new ToolStripMenuItem();
             viewToolStripMenuItem = new ToolStripMenuItem();
             fillPatternsToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem5 = new ToolStripSeparator();
@@ -77,13 +77,20 @@
             tssInfo = new ToolStripStatusLabel();
             tssMouseCoords = new ToolStripStatusLabel();
             tssToolUsed = new ToolStripStatusLabel();
+            tssZoomInfo = new ToolStripStatusLabel();
             mainPictureBox = new PictureBox();
             toolStripContainer1 = new ToolStripContainer();
             panel1 = new Panel();
+            pbEditorLayer = new PictureBox();
+            toolStripZoom = new ToolStrip();
+            tsButtonZoomOut = new ToolStripButton();
+            tsButtonZoomIn = new ToolStripButton();
             toolStrip2 = new ToolStrip();
             tsButtonPencil = new ToolStripButton();
+            tsButtonLine = new ToolStripButton();
             tsButtonDrawRectangle = new ToolStripButton();
             tsButtonRectangleSelection = new ToolStripButton();
+            toolStripButton1 = new ToolStripButton();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -92,6 +99,8 @@
             toolStripContainer1.TopToolStripPanel.SuspendLayout();
             toolStripContainer1.SuspendLayout();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pbEditorLayer).BeginInit();
+            toolStripZoom.SuspendLayout();
             toolStrip2.SuspendLayout();
             SuspendLayout();
             // 
@@ -106,60 +115,6 @@
             menuStrip1.Text = "menuStrip1";
             menuStrip1.ItemClicked += menuStrip1_ItemClicked;
             // 
-            // editToolStripMenuItem
-            // 
-            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { undoToolStripMenuItem, redoToolStripMenuItem, toolStripMenuItem3, cutToolStripMenuItem, copyToolStripMenuItem, pasteToolStripMenuItem, toolStripMenuItem4, preferencesToolStripMenuItem });
-            editToolStripMenuItem.Name = "editToolStripMenuItem";
-            editToolStripMenuItem.Size = new Size(39, 20);
-            editToolStripMenuItem.Text = "Edit";
-            // 
-            // undoToolStripMenuItem
-            // 
-            undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            undoToolStripMenuItem.Size = new Size(144, 22);
-            undoToolStripMenuItem.Text = "Undo";
-            // 
-            // redoToolStripMenuItem
-            // 
-            redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            redoToolStripMenuItem.Size = new Size(144, 22);
-            redoToolStripMenuItem.Text = "Redo";
-            // 
-            // toolStripMenuItem3
-            // 
-            toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(141, 6);
-            // 
-            // cutToolStripMenuItem
-            // 
-            cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            cutToolStripMenuItem.Size = new Size(144, 22);
-            cutToolStripMenuItem.Text = "Cut";
-            // 
-            // copyToolStripMenuItem
-            // 
-            copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            copyToolStripMenuItem.Size = new Size(144, 22);
-            copyToolStripMenuItem.Text = "Copy";
-            // 
-            // pasteToolStripMenuItem
-            // 
-            pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            pasteToolStripMenuItem.Size = new Size(144, 22);
-            pasteToolStripMenuItem.Text = "Paste";
-            // 
-            // toolStripMenuItem4
-            // 
-            toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(141, 6);
-            // 
-            // preferencesToolStripMenuItem
-            // 
-            preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            preferencesToolStripMenuItem.Size = new Size(144, 22);
-            preferencesToolStripMenuItem.Text = "Preferences...";
-            preferencesToolStripMenuItem.Click += preferencesToolStripMenuItem_Click;
-            // 
             // fileToolStripMenuItem
             // 
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, toolStripMenuItem7, openToolStripMenuItem, toolStripMenuItem2, saveToolStripMenuItem, toolStripMenuItem1, quitToolStripMenuItem });
@@ -171,46 +126,102 @@
             // newToolStripMenuItem
             // 
             newToolStripMenuItem.Name = "newToolStripMenuItem";
-            newToolStripMenuItem.Size = new Size(180, 22);
+            newToolStripMenuItem.Size = new Size(123, 22);
             newToolStripMenuItem.Text = "New";
             newToolStripMenuItem.Click += newToolStripMenuItem_Click;
             // 
             // toolStripMenuItem7
             // 
             toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.Size = new Size(177, 6);
+            toolStripMenuItem7.Size = new Size(120, 6);
             // 
             // openToolStripMenuItem
             // 
             openToolStripMenuItem.Name = "openToolStripMenuItem";
-            openToolStripMenuItem.Size = new Size(180, 22);
+            openToolStripMenuItem.Size = new Size(123, 22);
             openToolStripMenuItem.Text = "Open...";
             openToolStripMenuItem.Click += openToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(180, 22);
+            toolStripMenuItem2.Size = new Size(123, 22);
             toolStripMenuItem2.Text = "Save";
             // 
             // saveToolStripMenuItem
             // 
             saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            saveToolStripMenuItem.Size = new Size(180, 22);
+            saveToolStripMenuItem.Size = new Size(123, 22);
             saveToolStripMenuItem.Text = "Save As...";
             saveToolStripMenuItem.Click += saveToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(177, 6);
+            toolStripMenuItem1.Size = new Size(120, 6);
             // 
             // quitToolStripMenuItem
             // 
             quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            quitToolStripMenuItem.Size = new Size(180, 22);
+            quitToolStripMenuItem.Size = new Size(123, 22);
             quitToolStripMenuItem.Text = "Exit";
             quitToolStripMenuItem.Click += quitToolStripMenuItem_Click;
+            // 
+            // editToolStripMenuItem
+            // 
+            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { undoToolStripMenuItem, redoToolStripMenuItem, toolStripMenuItem3, cutToolStripMenuItem, copyToolStripMenuItem, pasteToolStripMenuItem, toolStripMenuItem4, preferencesToolStripMenuItem });
+            editToolStripMenuItem.Name = "editToolStripMenuItem";
+            editToolStripMenuItem.Size = new Size(39, 20);
+            editToolStripMenuItem.Text = "Edit";
+            // 
+            // undoToolStripMenuItem
+            // 
+            undoToolStripMenuItem.Name = "undoToolStripMenuItem";
+            undoToolStripMenuItem.Size = new Size(180, 22);
+            undoToolStripMenuItem.Text = "Undo";
+            undoToolStripMenuItem.Click += undoToolStripMenuItem_Click;
+            // 
+            // redoToolStripMenuItem
+            // 
+            redoToolStripMenuItem.Name = "redoToolStripMenuItem";
+            redoToolStripMenuItem.Size = new Size(180, 22);
+            redoToolStripMenuItem.Text = "Redo";
+            redoToolStripMenuItem.Click += redoToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(177, 6);
+            // 
+            // cutToolStripMenuItem
+            // 
+            cutToolStripMenuItem.Name = "cutToolStripMenuItem";
+            cutToolStripMenuItem.Size = new Size(180, 22);
+            cutToolStripMenuItem.Text = "Cut";
+            // 
+            // copyToolStripMenuItem
+            // 
+            copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            copyToolStripMenuItem.Size = new Size(180, 22);
+            copyToolStripMenuItem.Text = "Copy";
+            // 
+            // pasteToolStripMenuItem
+            // 
+            pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
+            pasteToolStripMenuItem.Size = new Size(180, 22);
+            pasteToolStripMenuItem.Text = "Paste";
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(177, 6);
+            // 
+            // preferencesToolStripMenuItem
+            // 
+            preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
+            preferencesToolStripMenuItem.Size = new Size(180, 22);
+            preferencesToolStripMenuItem.Text = "Preferences...";
+            preferencesToolStripMenuItem.Click += preferencesToolStripMenuItem_Click;
             // 
             // viewToolStripMenuItem
             // 
@@ -450,7 +461,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { tssInfo, tssMouseCoords, tssToolUsed });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { tssInfo, tssMouseCoords, tssToolUsed, tssZoomInfo });
             statusStrip1.Location = new Point(0, 570);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.RenderMode = ToolStripRenderMode.ManagerRenderMode;
@@ -477,6 +488,11 @@
             tssToolUsed.Size = new Size(29, 17);
             tssToolUsed.Text = "Tool";
             // 
+            // tssZoomInfo
+            // 
+            tssZoomInfo.Name = "tssZoomInfo";
+            tssZoomInfo.Size = new Size(0, 17);
+            // 
             // mainPictureBox
             // 
             mainPictureBox.BackColor = SystemColors.AppWorkspace;
@@ -484,6 +500,7 @@
             mainPictureBox.BorderStyle = BorderStyle.FixedSingle;
             mainPictureBox.Cursor = Cursors.Cross;
             mainPictureBox.Location = new Point(5, 5);
+            mainPictureBox.Margin = new Padding(0);
             mainPictureBox.Name = "mainPictureBox";
             mainPictureBox.Size = new Size(0, 0);
             mainPictureBox.TabIndex = 3;
@@ -515,13 +532,16 @@
             // toolStripContainer1.TopToolStripPanel
             // 
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip1);
+            toolStripContainer1.TopToolStripPanel.Controls.Add(toolStripZoom);
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip2);
+            toolStripContainer1.TopToolStripPanel.Click += toolStripContainer1_TopToolStripPanel_Click_1;
             // 
             // panel1
             // 
             panel1.AutoScroll = true;
             panel1.BackColor = SystemColors.AppWorkspace;
             panel1.Controls.Add(mainPictureBox);
+            panel1.Controls.Add(pbEditorLayer);
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
@@ -531,13 +551,60 @@
             panel1.SizeChanged += panel1_SizeChanged;
             panel1.Paint += panel1_Paint;
             // 
+            // pbEditorLayer
+            // 
+            pbEditorLayer.Anchor = AnchorStyles.None;
+            pbEditorLayer.BackColor = Color.Transparent;
+            pbEditorLayer.BackgroundImageLayout = ImageLayout.None;
+            pbEditorLayer.Cursor = Cursors.Cross;
+            pbEditorLayer.Location = new Point(615, 251);
+            pbEditorLayer.Margin = new Padding(0);
+            pbEditorLayer.Name = "pbEditorLayer";
+            pbEditorLayer.Size = new Size(185, 203);
+            pbEditorLayer.TabIndex = 4;
+            pbEditorLayer.TabStop = false;
+            pbEditorLayer.Paint += pbEditorLayer_Paint;
+            pbEditorLayer.MouseDown += pbEditorLayer_MouseDown;
+            pbEditorLayer.MouseLeave += pbEditorLayer_MouseLeave;
+            pbEditorLayer.MouseMove += pbEditorLayer_MouseMove;
+            pbEditorLayer.MouseUp += pbEditorLayer_MouseUp;
+            // 
+            // toolStripZoom
+            // 
+            toolStripZoom.Dock = DockStyle.None;
+            toolStripZoom.Items.AddRange(new ToolStripItem[] { tsButtonZoomOut, tsButtonZoomIn });
+            toolStripZoom.Location = new Point(3, 25);
+            toolStripZoom.Name = "toolStripZoom";
+            toolStripZoom.Size = new Size(58, 25);
+            toolStripZoom.TabIndex = 6;
+            // 
+            // tsButtonZoomOut
+            // 
+            tsButtonZoomOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonZoomOut.Image = (Image)resources.GetObject("tsButtonZoomOut.Image");
+            tsButtonZoomOut.ImageTransparentColor = Color.Magenta;
+            tsButtonZoomOut.Name = "tsButtonZoomOut";
+            tsButtonZoomOut.Size = new Size(23, 22);
+            tsButtonZoomOut.Text = "Zoom Out";
+            tsButtonZoomOut.Click += tsButtonZoomOut_Click;
+            // 
+            // tsButtonZoomIn
+            // 
+            tsButtonZoomIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonZoomIn.Image = (Image)resources.GetObject("tsButtonZoomIn.Image");
+            tsButtonZoomIn.ImageTransparentColor = Color.Magenta;
+            tsButtonZoomIn.Name = "tsButtonZoomIn";
+            tsButtonZoomIn.Size = new Size(23, 22);
+            tsButtonZoomIn.Text = "Zoom In";
+            tsButtonZoomIn.Click += tsButtonZoomIn_Click;
+            // 
             // toolStrip2
             // 
             toolStrip2.Dock = DockStyle.None;
-            toolStrip2.Items.AddRange(new ToolStripItem[] { tsButtonPencil, tsButtonDrawRectangle, tsButtonRectangleSelection });
-            toolStrip2.Location = new Point(4, 25);
+            toolStrip2.Items.AddRange(new ToolStripItem[] { tsButtonPencil, tsButtonLine, tsButtonDrawRectangle, tsButtonRectangleSelection, toolStripButton1 });
+            toolStrip2.Location = new Point(61, 25);
             toolStrip2.Name = "toolStrip2";
-            toolStrip2.Size = new Size(81, 25);
+            toolStrip2.Size = new Size(127, 25);
             toolStrip2.TabIndex = 5;
             toolStrip2.Text = "toolStrip2";
             toolStrip2.ItemClicked += toolStrip2_ItemClicked;
@@ -554,6 +621,16 @@
             tsButtonPencil.ToolTipText = "Pencil";
             tsButtonPencil.CheckedChanged += tsButtonPencil_CheckedChanged;
             tsButtonPencil.Click += tsButtonPencil_Click;
+            // 
+            // tsButtonLine
+            // 
+            tsButtonLine.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonLine.Image = (Image)resources.GetObject("tsButtonLine.Image");
+            tsButtonLine.ImageTransparentColor = Color.Magenta;
+            tsButtonLine.Name = "tsButtonLine";
+            tsButtonLine.Size = new Size(23, 22);
+            tsButtonLine.Text = "Line Tool";
+            tsButtonLine.Click += toolStripButton1_Click_2;
             // 
             // tsButtonDrawRectangle
             // 
@@ -576,6 +653,16 @@
             tsButtonRectangleSelection.Size = new Size(23, 22);
             tsButtonRectangleSelection.Text = "Rectangular Selection";
             tsButtonRectangleSelection.Click += toolStripButton1_Click_1;
+            // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton1.Image = (Image)resources.GetObject("toolStripButton1.Image");
+            toolStripButton1.ImageTransparentColor = Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new Size(23, 22);
+            toolStripButton1.Text = "toolStripButton1";
+            toolStripButton1.Click += toolStripButton1_Click_3;
             // 
             // Main
             // 
@@ -603,6 +690,9 @@
             toolStripContainer1.ResumeLayout(false);
             toolStripContainer1.PerformLayout();
             panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pbEditorLayer).EndInit();
+            toolStripZoom.ResumeLayout(false);
+            toolStripZoom.PerformLayout();
             toolStrip2.ResumeLayout(false);
             toolStrip2.PerformLayout();
             ResumeLayout(false);
@@ -671,5 +761,12 @@
         private ToolStripStatusLabel tssMouseCoords;
         private ToolStripStatusLabel tssToolUsed;
         private Panel panel1;
+        private PictureBox pbEditorLayer;
+        private ToolStripButton tsButtonLine;
+        private ToolStripButton toolStripButton1;
+        private ToolStrip toolStripZoom;
+        private ToolStripButton tsButtonZoomOut;
+        private ToolStripButton tsButtonZoomIn;
+        private ToolStripStatusLabel tssZoomInfo;
     }
 }

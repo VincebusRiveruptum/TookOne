@@ -37,9 +37,10 @@ namespace animationApp {
 
             this.undoStates = new Stack<Bitmap>();
             this.redoStates = new Stack<Bitmap>();
-                        
+
             this.width = width;
             this.height = height;
+
         }
         public Editor(Bitmap bmp) {
             this.workspace = bmp;
@@ -56,6 +57,10 @@ namespace animationApp {
 
         public Bitmap getBitmap() {
             return this.workspace;
+        }
+
+        public void setBitmap(Bitmap bmp) {
+            this.workspace = bmp;
         }
 
         public Bitmap popUndoState() {

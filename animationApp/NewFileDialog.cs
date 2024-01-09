@@ -46,9 +46,13 @@ namespace animationApp {
 
         public void createFile() {
             // We create the new file
-            main.SetEditor(new Editor((int)widthNumeric.Value, (int)heightNumeric.Value, colorDepthCombo.SelectedIndex));
-            main.unlockToolStripItems();
-            this.Close();
+            if(widthNumeric.Value > 1 && heightNumeric.Value > 1) {
+                main.SetEditor(new Editor((int)widthNumeric.Value, (int)heightNumeric.Value, colorDepthCombo.SelectedIndex));
+                main.unlockToolStripItems();
+                this.Close();
+            } else {
+                MessageBox.Show("Width and Height should be over 1", "Bad size", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void numericUpDown1_ValueChanged_1(object sender, EventArgs e) {

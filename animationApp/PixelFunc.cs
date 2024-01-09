@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 
 namespace animationApp {
@@ -11,7 +14,7 @@ namespace animationApp {
 
         private Editor editor;
         private bool isDrawing;
-        private Point lastPoint;
+        private Point initialPoint;
         private Graphics editorLayer;
         private int selectedTool;
         private AppProperties appProperties;
@@ -19,19 +22,18 @@ namespace animationApp {
         public Main() {
             InitializeComponent();
             this.isDrawing = false;
-            this.lastPoint = new Point();
+            this.initialPoint = new Point();
             this.selectedTool = 0;
             this.appProperties = new AppProperties();
+            
             mainPictureBox.Enabled = false;
+            pbEditorLayer.Enabled = false;
         }
 
 
         // Setters & getters
         public void SetEditor(Editor editor) {
             this.editor = editor;
-
-            // We update the pictureBox with the new picture created
-            mainPictureBox.Image = editor.getBitmap();
         }
 
         // APP PROPERTIES ===================================================================
@@ -176,6 +178,18 @@ namespace animationApp {
             if(editor != null) {
                 mainPictureBox.Width = editor.getWidth();
                 mainPictureBox.Height = editor.getHeight();
+
+                mainPictureBox.Image = editor.getBitmap();
+
+                pbEditorLayer.Image = new Bitmap(editor.getWidth(), editor.getHeight());
+
+                pbEditorLayer.Location = new Point(0,0);
+                pbEditorLayer.Width = mainPictureBox.Width;
+                pbEditorLayer.Height = mainPictureBox.Height;
+                pbEditorLayer.Parent = mainPictureBox;
+                pbEditorLayer.Enabled = true;
+
+                appProperties.resetProperties();
             }
         }
 
@@ -184,40 +198,128 @@ namespace animationApp {
         private void pencilTool(object sender, MouseEventArgs e) {
 
             if(this.isDrawing == true) {
-                using(Graphics g = Graphics.FromImage(mainPictureBox.Image)) {
-                    g.DrawLine(Pens.Black, lastPoint, e.Location);
 
-                }
-                lastPoint = e.Location;
-                mainPictureBox.Invalidate();
+                //Draw pixel on editor layer
+                editorLayer = Graphics.FromImage(pbEditorLayer.Image);
+                editorLayer.DrawLine(Pens.Black, initialPoint, e.Location);
+
+                initialPoint = e.Location;
+                pbEditorLayer.Invalidate();
             }
         }
 
         private void drawRectangleTool(object sender, MouseEventArgs e) {
             if(this.isDrawing == true) {
+
+                Rectangle rect;
+                // Clear pbEditorLayer
+
+                editorLayer = Graphics.FromImage(pbEditorLayer.Image);
+                editorLayer.Clear(Color.Transparent);
+
+
                 // Draw on editor layer
-                editorLayer = Graphics.FromImage(mainPictureBox.Image);
-                editorLayer.DrawRectangle(Pens.Black, new Rectangle(lastPoint, new Size(e.Location.X - lastPoint.X, e.Location.Y - lastPoint.Y)));
+                
+                editorLayer = Graphics.FromImage(pbEditorLayer.Image);
+
+                // Setting origin to 0 half of the height and weidth, so we can translate editor layer coordinates for negative drawing of shapes
+                editorLayer.TranslateTransform(pbEditorLayer.Width / 2 , pbEditorLayer.Height / 2);
+
+                //editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint.X - (pbEditorLayer.Width / 2), initialPoint.Y - (pbEditorLayer.Height / 2), e.Location.X, e.Location.Y));
+                editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint.X , initialPoint.Y, e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y));
+
+                statusStrip1.Items["tssMouseCoords"].Text = " Rectangle Coords [X: " + translateX(e.Location.X) + ", Y: " + translateY(e.Location.Y) + "]";
 
                 //lastPoint = e.Location;
-                mainPictureBox.Invalidate();
+                pbEditorLayer.Invalidate();
+                    
             } else {
                 // Draw on bitmap on click release
 
             }
+            
+        }
+
+        public float translateX(int x) {
+            return (float)(x - (pbEditorLayer.Width / 2));
+        }
+
+        public float translateY(int y) {
+            return (float)(y - (pbEditorLayer.Height / 2));
+        }
+
+        // This function transfer the editorLayer buffer to the 'workspace' or 'editor' buffer
+        public void transferToWorkspace() {
+            // Overlap editor layer newly made drawing to main workspace
+            mainPictureBox.Image = this.overwriteImages(mainPictureBox.Image, pbEditorLayer.Image, Color.White);
+            editor.setBitmap((Bitmap)mainPictureBox.Image);
+
+            // Clear editor buffer
+            editorLayer = Graphics.FromImage(pbEditorLayer.Image);
+            editorLayer.Clear(Color.Transparent);
+
+        }
+
+        // This functions draw the rectangle when the user released the mouse on the workspace
+        public void drawRectangleToWorkspace(object sender, MouseEventArgs e) {
+            // Draw on editor layer
+
+            editorLayer = Graphics.FromImage(mainPictureBox.Image);
+            editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint, new Size(e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y)));
+            //mainPictureBox.Invalidate();
         }
 
         public void workspaceCenter() {
-            appProperties.setCenteredWorkspace(true);
+            this.appProperties.setCenteredWorkspace(true);
         }
         public void workspaceCorner() {
-            appProperties.setCenteredWorkspace(false);
+            this.appProperties.setCenteredWorkspace(false);
             mainPictureBox.Location = new Point(5, 5);
         }
 
         public void updateWorkspace() {
             this.Invalidate();
             this.Refresh();
+        }
+
+        public Bitmap blendImages(Image image1, Image image2, Color transparentColor, float opacity) {
+            Bitmap bitmap1 = new Bitmap(image1);
+            Bitmap bitmap2 = new Bitmap(image2);
+
+            bitmap1.MakeTransparent(transparentColor);
+
+            using(Graphics g = Graphics.FromImage(bitmap1)) {
+                float[][] matrixItems =
+                {
+                    new float[] {1, 0, 0, 0, 0},
+                    new float[] {0, 1, 0, 0, 0},
+                    new float[] {0, 0, 1, 0, 0},
+                    new float[] {0, 0, 0, opacity, 0},
+                    new float[] {0, 0, 0, 0, 1}
+                  };
+
+                ColorMatrix colorMatrix = new ColorMatrix(matrixItems);
+                ImageAttributes imageAttributes = new ImageAttributes();
+                imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                g.DrawImage(bitmap2, new Rectangle(0, 0, bitmap1.Width, bitmap1.Height), 0, 0, bitmap2.Width, bitmap2.Height, GraphicsUnit.Pixel, imageAttributes);
+            }
+
+            return bitmap1;
+        }
+
+        private Bitmap overwriteImages(Image dest, Image src, Color transparentColor) {
+            Bitmap bitmap1 = new Bitmap(dest);
+            Bitmap bitmap2 = new Bitmap(src);
+
+            //bitmap1.MakeTransparent(transparentColor);
+            bitmap2.MakeTransparent(transparentColor);
+
+            using(Graphics g = Graphics.FromImage(bitmap1)) {
+                g.DrawImage(bitmap2, 0, 0);
+            }
+
+            return bitmap1;
         }
 
     }

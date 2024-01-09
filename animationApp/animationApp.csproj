@@ -6,7 +6,17 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Product>Took One</Product>
+    <Company>Vincebus Riveruptum</Company>
+    <ApplicationIcon>assets\tube.ico</ApplicationIcon>
+    <AssemblyName>TookOneAlpha</AssemblyName>
+    <Copyright>Copyright (C) Vincebus Riveruptum, 2023.</Copyright>
+    <PackageIcon>avatar.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="assets\tube.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
@@ -21,6 +31,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="assets\avatar.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
