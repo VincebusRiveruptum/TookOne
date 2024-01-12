@@ -80,17 +80,25 @@
             tssZoomInfo = new ToolStripStatusLabel();
             mainPictureBox = new PictureBox();
             toolStripContainer1 = new ToolStripContainer();
+            panelWorkspace = new Panel();
             panel1 = new Panel();
             pbEditorLayer = new PictureBox();
-            toolStripZoom = new ToolStrip();
-            tsButtonZoomOut = new ToolStripButton();
-            tsButtonZoomIn = new ToolStripButton();
+            panel2 = new Panel();
+            pbColorN = new PictureBox();
+            groupBox1 = new GroupBox();
+            pAvailableColors = new Panel();
+            pbSelectedColor = new PictureBox();
+            pbSecondaryColor = new PictureBox();
+            pbBgColor = new PictureBox();
             toolStrip2 = new ToolStrip();
             tsButtonPencil = new ToolStripButton();
             tsButtonLine = new ToolStripButton();
             tsButtonDrawRectangle = new ToolStripButton();
             tsButtonRectangleSelection = new ToolStripButton();
-            toolStripButton1 = new ToolStripButton();
+            tsButtonBucketTool = new ToolStripButton();
+            toolStripZoom = new ToolStrip();
+            tsButtonZoomOut = new ToolStripButton();
+            tsButtonZoomIn = new ToolStripButton();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -98,10 +106,17 @@
             toolStripContainer1.ContentPanel.SuspendLayout();
             toolStripContainer1.TopToolStripPanel.SuspendLayout();
             toolStripContainer1.SuspendLayout();
+            panelWorkspace.SuspendLayout();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pbEditorLayer).BeginInit();
-            toolStripZoom.SuspendLayout();
+            panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pbColorN).BeginInit();
+            groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pbSelectedColor).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbSecondaryColor).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbBgColor).BeginInit();
             toolStrip2.SuspendLayout();
+            toolStripZoom.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -177,49 +192,49 @@
             // undoToolStripMenuItem
             // 
             undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            undoToolStripMenuItem.Size = new Size(180, 22);
+            undoToolStripMenuItem.Size = new Size(144, 22);
             undoToolStripMenuItem.Text = "Undo";
             undoToolStripMenuItem.Click += undoToolStripMenuItem_Click;
             // 
             // redoToolStripMenuItem
             // 
             redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            redoToolStripMenuItem.Size = new Size(180, 22);
+            redoToolStripMenuItem.Size = new Size(144, 22);
             redoToolStripMenuItem.Text = "Redo";
             redoToolStripMenuItem.Click += redoToolStripMenuItem_Click;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(177, 6);
+            toolStripMenuItem3.Size = new Size(141, 6);
             // 
             // cutToolStripMenuItem
             // 
             cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            cutToolStripMenuItem.Size = new Size(180, 22);
+            cutToolStripMenuItem.Size = new Size(144, 22);
             cutToolStripMenuItem.Text = "Cut";
             // 
             // copyToolStripMenuItem
             // 
             copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            copyToolStripMenuItem.Size = new Size(180, 22);
+            copyToolStripMenuItem.Size = new Size(144, 22);
             copyToolStripMenuItem.Text = "Copy";
             // 
             // pasteToolStripMenuItem
             // 
             pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            pasteToolStripMenuItem.Size = new Size(180, 22);
+            pasteToolStripMenuItem.Size = new Size(144, 22);
             pasteToolStripMenuItem.Text = "Paste";
             // 
             // toolStripMenuItem4
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(177, 6);
+            toolStripMenuItem4.Size = new Size(141, 6);
             // 
             // preferencesToolStripMenuItem
             // 
             preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            preferencesToolStripMenuItem.Size = new Size(180, 22);
+            preferencesToolStripMenuItem.Size = new Size(144, 22);
             preferencesToolStripMenuItem.Text = "Preferences...";
             preferencesToolStripMenuItem.Click += preferencesToolStripMenuItem_Click;
             // 
@@ -520,9 +535,14 @@
             // 
             // toolStripContainer1.ContentPanel
             // 
-            toolStripContainer1.ContentPanel.Controls.Add(panel1);
-            toolStripContainer1.ContentPanel.Size = new Size(844, 496);
+            toolStripContainer1.ContentPanel.Controls.Add(panelWorkspace);
+            toolStripContainer1.ContentPanel.Size = new Size(844, 471);
+            toolStripContainer1.ContentPanel.Load += toolStripContainer1_ContentPanel_Load;
             toolStripContainer1.Dock = DockStyle.Fill;
+            // 
+            // toolStripContainer1.LeftToolStripPanel
+            // 
+            toolStripContainer1.LeftToolStripPanel.Click += toolStripContainer1_LeftToolStripPanel_Click;
             toolStripContainer1.Location = new Point(0, 24);
             toolStripContainer1.Name = "toolStripContainer1";
             toolStripContainer1.Size = new Size(844, 546);
@@ -532,32 +552,44 @@
             // toolStripContainer1.TopToolStripPanel
             // 
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip1);
-            toolStripContainer1.TopToolStripPanel.Controls.Add(toolStripZoom);
             toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip2);
+            toolStripContainer1.TopToolStripPanel.Controls.Add(toolStripZoom);
             toolStripContainer1.TopToolStripPanel.Click += toolStripContainer1_TopToolStripPanel_Click_1;
+            // 
+            // panelWorkspace
+            // 
+            panelWorkspace.AutoSize = true;
+            panelWorkspace.BackColor = SystemColors.AppWorkspace;
+            panelWorkspace.Controls.Add(panel1);
+            panelWorkspace.Controls.Add(panel2);
+            panelWorkspace.Dock = DockStyle.Fill;
+            panelWorkspace.Location = new Point(0, 0);
+            panelWorkspace.Name = "panelWorkspace";
+            panelWorkspace.Size = new Size(844, 471);
+            panelWorkspace.TabIndex = 5;
             // 
             // panel1
             // 
             panel1.AutoScroll = true;
+            panel1.AutoSize = true;
             panel1.BackColor = SystemColors.AppWorkspace;
             panel1.Controls.Add(mainPictureBox);
             panel1.Controls.Add(pbEditorLayer);
             panel1.Dock = DockStyle.Fill;
-            panel1.Location = new Point(0, 0);
+            panel1.Location = new Point(155, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(844, 496);
+            panel1.Size = new Size(689, 471);
             panel1.TabIndex = 4;
             panel1.SizeChanged += panel1_SizeChanged;
             panel1.Paint += panel1_Paint;
             // 
             // pbEditorLayer
             // 
-            pbEditorLayer.Anchor = AnchorStyles.None;
             pbEditorLayer.BackColor = Color.Transparent;
             pbEditorLayer.BackgroundImageLayout = ImageLayout.None;
             pbEditorLayer.Cursor = Cursors.Cross;
-            pbEditorLayer.Location = new Point(615, 251);
+            pbEditorLayer.Location = new Point(426, 170);
             pbEditorLayer.Margin = new Padding(0);
             pbEditorLayer.Name = "pbEditorLayer";
             pbEditorLayer.Size = new Size(185, 203);
@@ -569,40 +601,85 @@
             pbEditorLayer.MouseMove += pbEditorLayer_MouseMove;
             pbEditorLayer.MouseUp += pbEditorLayer_MouseUp;
             // 
-            // toolStripZoom
+            // panel2
             // 
-            toolStripZoom.Dock = DockStyle.None;
-            toolStripZoom.Items.AddRange(new ToolStripItem[] { tsButtonZoomOut, tsButtonZoomIn });
-            toolStripZoom.Location = new Point(3, 25);
-            toolStripZoom.Name = "toolStripZoom";
-            toolStripZoom.Size = new Size(58, 25);
-            toolStripZoom.TabIndex = 6;
+            panel2.BackColor = SystemColors.ButtonFace;
+            panel2.Controls.Add(pbColorN);
+            panel2.Controls.Add(groupBox1);
+            panel2.Dock = DockStyle.Left;
+            panel2.Location = new Point(0, 0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(155, 471);
+            panel2.TabIndex = 5;
+            panel2.Paint += panel2_Paint;
             // 
-            // tsButtonZoomOut
+            // pbColorN
             // 
-            tsButtonZoomOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsButtonZoomOut.Image = (Image)resources.GetObject("tsButtonZoomOut.Image");
-            tsButtonZoomOut.ImageTransparentColor = Color.Magenta;
-            tsButtonZoomOut.Name = "tsButtonZoomOut";
-            tsButtonZoomOut.Size = new Size(23, 22);
-            tsButtonZoomOut.Text = "Zoom Out";
-            tsButtonZoomOut.Click += tsButtonZoomOut_Click;
+            pbColorN.BackColor = Color.Black;
+            pbColorN.BorderStyle = BorderStyle.FixedSingle;
+            pbColorN.Location = new Point(9, 292);
+            pbColorN.Name = "pbColorN";
+            pbColorN.Size = new Size(24, 24);
+            pbColorN.TabIndex = 0;
+            pbColorN.TabStop = false;
+            pbColorN.Click += pbColorN_Click;
+            pbColorN.MouseDown += pbColorN_MouseDown;
             // 
-            // tsButtonZoomIn
+            // groupBox1
             // 
-            tsButtonZoomIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsButtonZoomIn.Image = (Image)resources.GetObject("tsButtonZoomIn.Image");
-            tsButtonZoomIn.ImageTransparentColor = Color.Magenta;
-            tsButtonZoomIn.Name = "tsButtonZoomIn";
-            tsButtonZoomIn.Size = new Size(23, 22);
-            tsButtonZoomIn.Text = "Zoom In";
-            tsButtonZoomIn.Click += tsButtonZoomIn_Click;
+            groupBox1.Controls.Add(pAvailableColors);
+            groupBox1.Controls.Add(pbSelectedColor);
+            groupBox1.Controls.Add(pbSecondaryColor);
+            groupBox1.Controls.Add(pbBgColor);
+            groupBox1.Location = new Point(3, 5);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(144, 281);
+            groupBox1.TabIndex = 1;
+            groupBox1.TabStop = false;
+            // 
+            // pAvailableColors
+            // 
+            pAvailableColors.AutoScroll = true;
+            pAvailableColors.BorderStyle = BorderStyle.Fixed3D;
+            pAvailableColors.Location = new Point(6, 92);
+            pAvailableColors.Name = "pAvailableColors";
+            pAvailableColors.Size = new Size(132, 183);
+            pAvailableColors.TabIndex = 3;
+            // 
+            // pbSelectedColor
+            // 
+            pbSelectedColor.BackColor = SystemColors.ActiveCaptionText;
+            pbSelectedColor.BorderStyle = BorderStyle.FixedSingle;
+            pbSelectedColor.Location = new Point(17, 33);
+            pbSelectedColor.Name = "pbSelectedColor";
+            pbSelectedColor.Size = new Size(32, 32);
+            pbSelectedColor.TabIndex = 2;
+            pbSelectedColor.TabStop = false;
+            // 
+            // pbSecondaryColor
+            // 
+            pbSecondaryColor.BackColor = Color.White;
+            pbSecondaryColor.BorderStyle = BorderStyle.FixedSingle;
+            pbSecondaryColor.Location = new Point(29, 44);
+            pbSecondaryColor.Name = "pbSecondaryColor";
+            pbSecondaryColor.Size = new Size(32, 32);
+            pbSecondaryColor.TabIndex = 1;
+            pbSecondaryColor.TabStop = false;
+            // 
+            // pbBgColor
+            // 
+            pbBgColor.BorderStyle = BorderStyle.FixedSingle;
+            pbBgColor.Location = new Point(6, 22);
+            pbBgColor.Name = "pbBgColor";
+            pbBgColor.Size = new Size(64, 64);
+            pbBgColor.TabIndex = 0;
+            pbBgColor.TabStop = false;
             // 
             // toolStrip2
             // 
             toolStrip2.Dock = DockStyle.None;
-            toolStrip2.Items.AddRange(new ToolStripItem[] { tsButtonPencil, tsButtonLine, tsButtonDrawRectangle, tsButtonRectangleSelection, toolStripButton1 });
-            toolStrip2.Location = new Point(61, 25);
+            toolStrip2.Items.AddRange(new ToolStripItem[] { tsButtonPencil, tsButtonLine, tsButtonDrawRectangle, tsButtonRectangleSelection, tsButtonBucketTool });
+            toolStrip2.Location = new Point(3, 25);
             toolStrip2.Name = "toolStrip2";
             toolStrip2.Size = new Size(127, 25);
             toolStrip2.TabIndex = 5;
@@ -654,15 +731,44 @@
             tsButtonRectangleSelection.Text = "Rectangular Selection";
             tsButtonRectangleSelection.Click += toolStripButton1_Click_1;
             // 
-            // toolStripButton1
+            // tsButtonBucketTool
             // 
-            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripButton1.Image = (Image)resources.GetObject("toolStripButton1.Image");
-            toolStripButton1.ImageTransparentColor = Color.Magenta;
-            toolStripButton1.Name = "toolStripButton1";
-            toolStripButton1.Size = new Size(23, 22);
-            toolStripButton1.Text = "toolStripButton1";
-            toolStripButton1.Click += toolStripButton1_Click_3;
+            tsButtonBucketTool.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonBucketTool.Image = (Image)resources.GetObject("tsButtonBucketTool.Image");
+            tsButtonBucketTool.ImageTransparentColor = Color.Magenta;
+            tsButtonBucketTool.Name = "tsButtonBucketTool";
+            tsButtonBucketTool.Size = new Size(23, 22);
+            tsButtonBucketTool.Text = "Bucket Tool";
+            tsButtonBucketTool.Click += toolStripButton1_Click_3;
+            // 
+            // toolStripZoom
+            // 
+            toolStripZoom.Dock = DockStyle.None;
+            toolStripZoom.Items.AddRange(new ToolStripItem[] { tsButtonZoomOut, tsButtonZoomIn });
+            toolStripZoom.Location = new Point(92, 50);
+            toolStripZoom.Name = "toolStripZoom";
+            toolStripZoom.Size = new Size(58, 25);
+            toolStripZoom.TabIndex = 6;
+            // 
+            // tsButtonZoomOut
+            // 
+            tsButtonZoomOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonZoomOut.Image = (Image)resources.GetObject("tsButtonZoomOut.Image");
+            tsButtonZoomOut.ImageTransparentColor = Color.Magenta;
+            tsButtonZoomOut.Name = "tsButtonZoomOut";
+            tsButtonZoomOut.Size = new Size(23, 22);
+            tsButtonZoomOut.Text = "Zoom Out";
+            tsButtonZoomOut.Click += tsButtonZoomOut_Click;
+            // 
+            // tsButtonZoomIn
+            // 
+            tsButtonZoomIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsButtonZoomIn.Image = (Image)resources.GetObject("tsButtonZoomIn.Image");
+            tsButtonZoomIn.ImageTransparentColor = Color.Magenta;
+            tsButtonZoomIn.Name = "tsButtonZoomIn";
+            tsButtonZoomIn.Size = new Size(23, 22);
+            tsButtonZoomIn.Text = "Zoom In";
+            tsButtonZoomIn.Click += tsButtonZoomIn_Click;
             // 
             // Main
             // 
@@ -685,16 +791,25 @@
             statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)mainPictureBox).EndInit();
             toolStripContainer1.ContentPanel.ResumeLayout(false);
+            toolStripContainer1.ContentPanel.PerformLayout();
             toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
             toolStripContainer1.TopToolStripPanel.PerformLayout();
             toolStripContainer1.ResumeLayout(false);
             toolStripContainer1.PerformLayout();
+            panelWorkspace.ResumeLayout(false);
+            panelWorkspace.PerformLayout();
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pbEditorLayer).EndInit();
-            toolStripZoom.ResumeLayout(false);
-            toolStripZoom.PerformLayout();
+            panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pbColorN).EndInit();
+            groupBox1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pbSelectedColor).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbSecondaryColor).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbBgColor).EndInit();
             toolStrip2.ResumeLayout(false);
             toolStrip2.PerformLayout();
+            toolStripZoom.ResumeLayout(false);
+            toolStripZoom.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -763,10 +878,18 @@
         private Panel panel1;
         private PictureBox pbEditorLayer;
         private ToolStripButton tsButtonLine;
-        private ToolStripButton toolStripButton1;
+        private ToolStripButton tsButtonBucketTool;
         private ToolStrip toolStripZoom;
         private ToolStripButton tsButtonZoomOut;
         private ToolStripButton tsButtonZoomIn;
         private ToolStripStatusLabel tssZoomInfo;
+        private Panel panel2;
+        private Panel panelWorkspace;
+        private GroupBox groupBox1;
+        private Panel pAvailableColors;
+        private PictureBox pbSelectedColor;
+        private PictureBox pbSecondaryColor;
+        private PictureBox pbBgColor;
+        private PictureBox pbColorN;
     }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 
 
 namespace animationApp {
@@ -14,6 +16,7 @@ namespace animationApp {
 
         private Editor editor;
         private bool isDrawing;
+
         private Point initialPoint;
         private Graphics editorLayer;
         private int selectedTool;
@@ -24,12 +27,74 @@ namespace animationApp {
             this.isDrawing = false;
             this.initialPoint = new Point();
             this.selectedTool = 0;
-            this.appProperties = new AppProperties();
-            
+            this.appProperties = new AppProperties(); 
             mainPictureBox.Enabled = false;
             pbEditorLayer.Enabled = false;
+            
+            
         }
+        
+        public void setDockedColors() {
+            /*
 
+            // Docked to form main
+            DockPanel dockPanel = new DockPanel();
+            DockContent dockContent = new DockContent();            ColorPaletteControl paletteControl = new ColorPaletteControl();
+  
+            dockPanel.Dock = DockStyle.Fill;
+            dockPanel.Theme = new VS2015LightTheme();
+            this.Controls.Add(dockPanel);
+
+
+            if(toolStripContainer1 != null) {
+                // Docked window
+                dockPanel.Controls.Add(paletteControl);
+
+                // Dockable window
+                dockContent.Text = "Dockable Window";
+                dockContent.Show(dockPanel, DockState.DockRight);
+                paletteControl.Dock = DockStyle.Fill;
+                dockContent.Controls.Add(toolStripContainer1);
+            }
+            */
+            /*panel2.Controls.Add(new ColorPaletteControl());*/
+            int i = 0, jump=0;
+            Point ncolorLocation;
+            foreach(KnownColor color in Enum.GetValues(typeof(KnownColor))) {
+                PictureBox ncolor = new PictureBox();
+
+                ncolor.Width = 16;
+                ncolor.Height = 16;
+
+                if(i % 6 ==0 ) {
+                    jump++;
+                    i = 0;
+                }
+                
+                ncolor.Location = new Point((16*i), (16*jump) - 16);
+                ncolor.BackColor = Color.FromKnownColor(color);
+                pAvailableColors.Controls.Add(ncolor);
+
+                ncolor.MouseDown += new MouseEventHandler(nColor_MouseDown);
+
+                i++;
+                    
+            }
+        }
+        private void nColor_MouseDown(object sender, MouseEventArgs e) {
+            
+            PictureBox pbColorN = sender as PictureBox;
+
+            if(e.Button == MouseButtons.Left) {
+                appProperties.setSelectedColor(pbColorN.BackColor);
+                pbSelectedColor.BackColor = pbColorN.BackColor;
+            }
+
+            if(e.Button == MouseButtons.Right) {
+                appProperties.setSecondaryColor(pbColorN.BackColor);
+                pbSecondaryColor.BackColor = pbColorN.BackColor;
+            }
+        }
 
         // Setters & getters
         public void SetEditor(Editor editor) {
@@ -39,7 +104,9 @@ namespace animationApp {
         // APP PROPERTIES ===================================================================
 
         public void setCenteredWorkspace(bool centeredWorkspace) {
-            this.appProperties.setCenteredWorkspace(centeredWorkspace);
+            if(appProperties != null) {
+                this.appProperties.setCenteredWorkspace(centeredWorkspace);
+            }
         }
 
         public bool getCenteredWorkspace() {
@@ -190,22 +257,107 @@ namespace animationApp {
                 pbEditorLayer.Enabled = true;
 
                 appProperties.resetProperties();
+                setDockedColors();
+                
+
             }
         }
 
         /* ========================================================================================================= */
 
+        public void bucketTool(object sender, MouseEventArgs e, Color color) {
+            // Flood fill region directly to workspace 'editor', thanks stack overflow
+            int x = e.X;
+            int y = e.Y;
+
+            BitmapData data = editor.getBitmap().LockBits(
+                 new Rectangle(0, 0, editor.getWidth(), editor.getHeight()),
+                 ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            int[] bits = new int[data.Stride / 4 * data.Height];
+            Marshal.Copy(data.Scan0, bits, 0, bits.Length);
+
+            LinkedList<Point> check = new LinkedList<Point>();
+            int floodTo = color.ToArgb();
+            int floodFrom = bits[x + y * data.Stride / 4];
+            bits[x + y * data.Stride / 4] = floodTo;
+
+            if(floodFrom != floodTo) {
+                check.AddLast(new Point(x, y));
+                while(check.Count > 0) {
+                    Point cur = check.First.Value;
+                    check.RemoveFirst();
+
+                    foreach(Point off in new Point[] {
+                new Point(0, -1), new Point(0, 1),
+                new Point(-1, 0), new Point(1, 0)}) {
+                        Point next = new Point(cur.X + off.X, cur.Y + off.Y);
+                        if(next.X >= 0 && next.Y >= 0 &&
+                            next.X < data.Width &&
+                            next.Y < data.Height) {
+                            if(bits[next.X + next.Y * data.Stride / 4] == floodFrom) {
+                                check.AddLast(next);
+                                bits[next.X + next.Y * data.Stride / 4] = floodTo;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Marshal.Copy(bits, 0, data.Scan0, bits.Length);
+            editor.getBitmap().UnlockBits(data);
+            mainPictureBox.Image = editor.getBitmap();
+
+        }
+
         private void pencilTool(object sender, MouseEventArgs e) {
-
+            /*
             if(this.isDrawing == true) {
-
+                Pen newPen = new Pen(appProperties.getSelectedColor(), 1);
                 //Draw pixel on editor layer
                 editorLayer = Graphics.FromImage(pbEditorLayer.Image);
-                editorLayer.DrawLine(Pens.Black, initialPoint, e.Location);
+                editorLayer.DrawLine(newPen, initialPoint, e.Location);
 
                 initialPoint = e.Location;
                 pbEditorLayer.Invalidate();
             }
+            */
+            if(this.isDrawing == true) {
+
+                //We translate the pixel with relation to the zoom value
+                Point putPixelCoords = new Point((int)(e.Location.X / appProperties.getZoomScaleSelectedValue()), (int)(e.Location.Y / appProperties.getZoomScaleSelectedValue()));
+                Point translatedInitialPoint = new Point((int)(initialPoint.X / appProperties.getZoomScaleSelectedValue()),(int)(initialPoint.Y / appProperties.getZoomScaleSelectedValue()));
+                
+
+                Pen newPen = new Pen(appProperties.getSelectedColor(), 1);
+                //Draw pixel on editor workspace layer
+                editorLayer = Graphics.FromImage(editor.getBitmap());
+                editorLayer.DrawLine(newPen, translatedInitialPoint, putPixelCoords);
+
+                editorLayer = Graphics.FromImage(mainPictureBox.Image);
+                editorLayer.DrawImage(editor.getBitmap(), new Rectangle(0, 0, pbEditorLayer.Width, pbEditorLayer.Height));
+
+                initialPoint = e.Location;
+                pbEditorLayer.Invalidate();
+            }
+        }
+        public void drawLineTool(object sender, MouseEventArgs e) {
+
+            // Line is being drawn only if the mouse button is being hold down
+            if(this.isDrawing == true) {
+                // Clear editorLayer
+                editorLayer = Graphics.FromImage(pbEditorLayer.Image);
+                editorLayer.Clear(Color.Transparent);
+
+                // Draw Line
+                editorLayer.DrawLine(Pens.Black, initialPoint, e.Location);
+                pbEditorLayer.Invalidate();
+            }
+        }
+
+
+        public void drawLineToWorkspace(object sender, MouseEventArgs e) {
+            mainPictureBox.Image = this.overwriteImages(mainPictureBox.Image, pbEditorLayer.Image, Color.White);
+            editor.setBitmap((Bitmap)mainPictureBox.Image);
         }
 
         private void drawRectangleTool(object sender, MouseEventArgs e) {
@@ -226,7 +378,7 @@ namespace animationApp {
                 editorLayer.TranslateTransform(pbEditorLayer.Width / 2 , pbEditorLayer.Height / 2);
 
                 //editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint.X - (pbEditorLayer.Width / 2), initialPoint.Y - (pbEditorLayer.Height / 2), e.Location.X, e.Location.Y));
-                editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint.X , initialPoint.Y, e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y));
+                editorLayer.DrawRectangle(appProperties.getBrushTool(), new Rectangle(initialPoint.X , initialPoint.Y, e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y));
 
                 statusStrip1.Items["tssMouseCoords"].Text = " Rectangle Coords [X: " + translateX(e.Location.X) + ", Y: " + translateY(e.Location.Y) + "]";
 
@@ -252,9 +404,14 @@ namespace animationApp {
         public void transferToWorkspace() {
             // Overlap editor layer newly made drawing to main workspace
             mainPictureBox.Image = this.overwriteImages(mainPictureBox.Image, pbEditorLayer.Image, Color.White);
-            editor.setBitmap((Bitmap)mainPictureBox.Image);
 
-            // Clear editor buffer
+            // If there is no zoom then we save the already done changes to editor buffer
+            if(appProperties.getZoomScalePosition() == 2) {
+                editor.setBitmap((Bitmap)mainPictureBox.Image);
+
+            }
+
+            // Clear editor layer buffer
             editorLayer = Graphics.FromImage(pbEditorLayer.Image);
             editorLayer.Clear(Color.Transparent);
 
@@ -265,7 +422,7 @@ namespace animationApp {
             // Draw on editor layer
 
             editorLayer = Graphics.FromImage(mainPictureBox.Image);
-            editorLayer.DrawRectangle(Pens.Black, new Rectangle(initialPoint, new Size(e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y)));
+            editorLayer.DrawRectangle(appProperties.getBrushTool(), new Rectangle(initialPoint, new Size(e.Location.X - initialPoint.X, e.Location.Y - initialPoint.Y)));
             //mainPictureBox.Invalidate();
         }
 
@@ -321,6 +478,83 @@ namespace animationApp {
 
             return bitmap1;
         }
+
+        // Zoom methods ===================================================
+
+        // Zoom out the workspace and editor layer
+        public void zoomOut() {
+            Bitmap scaledImage;
+            int scaledWidth = 0, scaledHeight = 0;
+
+            // We decrease de zoom scale
+            if(appProperties.getZoomScalePosition() > 0) {
+                appProperties.setZoomScalePosition(appProperties.getZoomScalePosition() - 1);
+            }
+            statusStrip1.Items["tssZoomInfo"].Text = "" + appProperties.getZoomScale(appProperties.getZoomScalePosition()) + "x";
+
+            scaledWidth = (int)(editor.getWidth() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
+            scaledHeight = (int)(editor.getHeight() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
+
+            scaledImage = new Bitmap(scaledWidth, scaledHeight);
+
+            // Zoom editor layer
+
+            pbEditorLayer.Width = scaledWidth;
+            pbEditorLayer.Height = scaledHeight;
+
+            pbEditorLayer.Image = new Bitmap(scaledWidth, scaledHeight);
+
+            // Zoom workspace page
+
+            mainPictureBox.Width = scaledWidth;
+            mainPictureBox.Height = scaledHeight;
+
+            editorLayer = Graphics.FromImage(scaledImage);
+            editorLayer.DrawImage(editor.getBitmap(), new Rectangle(0, 0, scaledWidth, scaledHeight));
+
+            mainPictureBox.Image = scaledImage;
+
+
+        }
+
+        // Zoom in the workspace and editor layer
+        public void zoomIn() {
+            Bitmap scaledImage;
+            int scaledWidth = 0, scaledHeight = 0;
+
+            statusStrip1.Items["tssZoomInfo"].Text = "" + appProperties.getZoomScale(appProperties.getZoomScalePosition()) + "x";
+            
+            // We decrease de zoom scale
+            if(appProperties.getZoomScalePosition() < appProperties.getZoomScalesLength()) {
+                appProperties.setZoomScalePosition(appProperties.getZoomScalePosition() + 1);
+            }
+
+            scaledWidth = (int)(editor.getWidth() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
+            scaledHeight = (int)(editor.getHeight() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
+
+            scaledImage = new Bitmap(scaledWidth, scaledHeight);
+
+            // Zoom editor layer
+
+            pbEditorLayer.Width = scaledWidth;
+            pbEditorLayer.Height = scaledHeight;
+
+            pbEditorLayer.Image = new Bitmap(scaledWidth, scaledHeight);
+            
+
+            statusStrip1.Items["tssZoomInfo"].Text = "" + pbEditorLayer.Width + "," + pbEditorLayer.Height;
+
+            // Zoom workspace page
+
+            mainPictureBox.Width = scaledWidth;
+            mainPictureBox.Height = scaledHeight;
+
+            editorLayer = Graphics.FromImage(scaledImage);
+            editorLayer.DrawImage(editor.getBitmap(), new Rectangle(0, 0, scaledWidth, scaledHeight));
+
+            mainPictureBox.Image = scaledImage;
+        }
+
 
     }
 }

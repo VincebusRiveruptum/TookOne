@@ -1,4 +1,7 @@
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows.Forms;
 
@@ -204,8 +207,11 @@ namespace animationApp {
         }
 
         private void panel1_SizeChanged(object sender, EventArgs e) {
-            if(appProperties.getCenteredWorkspace() == true) {
-                mainPictureBox.Location = new Point((int)(panel1.Width / 2) - (mainPictureBox.Width / 2), (int)(panel1.Height / 2) - (mainPictureBox.Height / 2));
+            if(appProperties != null) {
+                if(appProperties.getCenteredWorkspace() == true) {
+                    mainPictureBox.Location = new Point((int)(panel1.Width / 2) - (mainPictureBox.Width / 2), (int)(panel1.Height / 2) - (mainPictureBox.Height / 2));
+                }
+
             }
         }
 
@@ -213,6 +219,17 @@ namespace animationApp {
             editorLayer = e.Graphics;
             Pen pen = new Pen(Color.Red);
             editorLayer.DrawRectangle(pen, new Rectangle(new Point(10, 10), new Size(10, 10)));
+
+            /*
+            if(appProperties.gridEnabled() == true) {
+                drawGrid();
+            }
+
+            if(appProperties.rulerEnabled() == true) {
+                drawRuler();
+            }
+            */
+
         }
 
         private void pbEditorLayer_MouseDown(object sender, MouseEventArgs e) {
@@ -260,29 +277,19 @@ namespace animationApp {
                         drawRectangleTool(sender, e);
                     }
                     break;
+                case 3: {
+                        bucketToolHover();
+                    }
+                    break;
 
             }
         }
 
-        public void drawLineTool(object sender, MouseEventArgs e) {
-
-            // Line is being drawn only if the mouse button is being hold down
-            if(this.isDrawing == true) {
-                // Clear editorLayer
-                editorLayer = Graphics.FromImage(pbEditorLayer.Image);
-                editorLayer.Clear(Color.Transparent);
-
-                // Draw Line
-                editorLayer.DrawLine(Pens.Black, initialPoint, e.Location);
-                pbEditorLayer.Invalidate();
-            }
+        public void bucketToolHover() {
+            // Put on statusbar an message if the region to fill is open
+            return;
         }
 
-
-        public void drawLineToWorkspace(object sender, MouseEventArgs e) {
-            mainPictureBox.Image = this.overwriteImages(mainPictureBox.Image, pbEditorLayer.Image, Color.White);
-            editor.setBitmap((Bitmap)mainPictureBox.Image);
-        }
         private void pbEditorLayer_MouseUp(object sender, MouseEventArgs e) {
 
             if(this.isDrawing == true) {
@@ -295,7 +302,7 @@ namespace animationApp {
             switch(this.selectedTool) {
                 case 0: {
                         //pencil tool method NOT NECESSARY
-                        transferToWorkspace();
+                        //transferToWorkspace();
                     }
                     break;
                 case 1: {
@@ -307,9 +314,12 @@ namespace animationApp {
                         drawRectangleToWorkspace(sender, e);
                     }
                     break;
+           
+                case 4: {
+                        bucketTool(sender, e, appProperties.getSelectedColor());
+                    }
+                    break;
             }
-
-
 
             statusStrip1.Items["tssToolUsed"].Text = "You finished using tool " + selectedTool + ".";
 
@@ -329,7 +339,16 @@ namespace animationApp {
         }
 
         private void toolStripButton1_Click_3(object sender, EventArgs e) {
+            foreach(ToolStripButton item in ((ToolStripButton)sender).GetCurrentParent().Items) {
+                if(item == sender) {
+                    item.Checked = true;
+                    selectedTool = 4;
+                }
+                if((item != null) && (item != sender)) {
+                    item.Checked = false;
 
+                }
+            }
         }
 
         private void toolStripContainer1_TopToolStripPanel_Click_1(object sender, EventArgs e) {
@@ -340,71 +359,6 @@ namespace animationApp {
             zoomOut();
         }
 
-        // Zoom out the workspace and editor layer
-        public void zoomOut() {
-            Bitmap scaledImage;
-            int scaledWidth = 0, scaledHeight = 0;
-
-            // We decrease de zoom scale
-            if(appProperties.getZoomScalePosition() > 0) {
-                appProperties.setZoomScalePosition(appProperties.getZoomScalePosition() - 1);
-            }
-            statusStrip1.Items["tssZoomInfo"].Text = "" + appProperties.getZoomScale(appProperties.getZoomScalePosition()) + "x";
-
-            scaledWidth = (int)(editor.getWidth() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
-            scaledHeight = (int)(editor.getHeight() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
-
-            scaledImage = new Bitmap(scaledWidth, scaledHeight);
-
-            // Zoom editor layer
-
-            pbEditorLayer.Width = scaledWidth;
-            pbEditorLayer.Height = scaledHeight;
-
-            // Zoom workspace page
-
-            mainPictureBox.Width = scaledWidth;
-            mainPictureBox.Height = scaledHeight;
-
-            editorLayer = Graphics.FromImage(scaledImage);
-            editorLayer.DrawImage(editor.getBitmap(), new Rectangle(0, 0, scaledWidth, scaledHeight));
-
-            mainPictureBox.Image = scaledImage;
-
-
-        }
-
-        // Zoom in the workspace and editor layer
-        public void zoomIn() {
-            Bitmap scaledImage;
-            int scaledWidth = 0, scaledHeight = 0;
-
-            // We decrease de zoom scale
-            if(appProperties.getZoomScalePosition() < appProperties.getZoomScalesLength()) {
-                appProperties.setZoomScalePosition(appProperties.getZoomScalePosition() + 1);
-            }
-            statusStrip1.Items["tssZoomInfo"].Text = "" + appProperties.getZoomScale(appProperties.getZoomScalePosition()) + "x";
-
-            scaledWidth = (int)(editor.getWidth() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
-            scaledHeight = (int)(editor.getHeight() * appProperties.getZoomScale(appProperties.getZoomScalePosition()));
-
-            scaledImage = new Bitmap(scaledWidth, scaledHeight);
-
-            // Zoom editor layer
-
-            pbEditorLayer.Width = scaledWidth;
-            pbEditorLayer.Height = scaledHeight;
-
-            // Zoom workspace page
-
-            mainPictureBox.Width = scaledWidth;
-            mainPictureBox.Height = scaledHeight;
-
-            editorLayer = Graphics.FromImage(scaledImage);
-            editorLayer.DrawImage(editor.getBitmap(), new Rectangle(0, 0, scaledWidth, scaledHeight));
-
-            mainPictureBox.Image = scaledImage;
-        }
 
         private void tsButtonZoomIn_Click(object sender, EventArgs e) {
             zoomIn();
@@ -416,6 +370,34 @@ namespace animationApp {
 
         private void redoToolStripMenuItem_Click(object sender, EventArgs e) {
             redo();
+        }
+
+        private void toolStripContainer1_LeftToolStripPanel_Click(object sender, EventArgs e) {
+
+        }
+
+        private void toolStripContainer1_ContentPanel_Load(object sender, EventArgs e) {
+
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e) {
+
+        }
+
+        private void pbColorN_Click(object sender, EventArgs e) {
+
+        }
+
+        private void pbColorN_MouseDown(object sender, MouseEventArgs e) {
+            if(e.Button == MouseButtons.Left) {
+                appProperties.setSelectedColor(pbColorN.BackColor);
+                pbSelectedColor.BackColor = pbColorN.BackColor;
+            } 
+
+            if(e.Button == MouseButtons.Right) {
+                appProperties.setSecondaryColor(pbColorN.BackColor);
+                pbSecondaryColor.BackColor = pbColorN.BackColor;
+            }
         }
     }
 }
