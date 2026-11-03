@@ -20,14 +20,14 @@ Documentos relacionados: [`arch.md`](arch.md) (exploración de opciones) · [`c-
 |---|---|---|
 | 1 | **Todo en C89** siguiendo `c-code-stlye.md`. Sin C++ | Confirmado |
 | 2 | **Interfaz propia** en modo inmediato sobre **microui** (MIT, ~1200 líneas, sin `malloc`), sin modificar, en `external/microui/` | Confirmado |
-| 3 | **SDL** como primer backend de plataforma (Windows + Linux). Backend Win32 nativo después del MVP | Confirmado (SDL2 vs SDL3 por decidir, §6) |
+| 3 | **SDL3** como primer backend de plataforma (Windows + Linux). Backend Win32 nativo después del MVP | Confirmado |
 | 4 | Por qué no Qt / GTK / libui-ng: priorizar portabilidad, minimalismo, C puro y reutilización en BMPIO. Se acepta perder la apariencia nativa | Confirmado |
 | 5 | Librería de imágenes: **sin ImageMagick**; codecs propios (BMP, PAL, BSF) | Confirmado |
 | 6 | Extensiones: `.bsf` (secuencia), `.bss` (sprite sheet), `.bpk` (paquete) | Confirmado |
 | 7 | Datos de juego en **texto plano propio** (por ahora `KEY=VALUE`), nada de JSON | Confirmado (sintaxis por definir) |
 | 8 | Compresión de frames: **RLE obligatoria**, deflate opcional/futura | Confirmado |
 | 9 | Lector/escritor `.bsf` como **dep genérica** `deps/bsf/` | Confirmado |
-| 10 | **Build con make**: `makefile` (gcc) y `makefile.wat` (OpenWatcom). Sin CMake | Confirmado |
+| 10 | **Build con make**: `makefile.linux` (gcc) y `makefile.watcom-linux` (OpenWatcom, objetivo `build`), verificados con la skill `.agents/skills/c89-conformance`. Sin CMake | Confirmado |
 | 11 | Método: **vertical slices** (§9), no spec-driven. Las deps genéricas se crean o integran cuando un slice las necesita | Confirmado |
 
 ## 2. Capas
@@ -116,8 +116,8 @@ Estructura objetivo; las carpetas se crean a medida que un slice las necesita (�
 
 ```
 TookOne/
-├─ makefile                gcc: compila todo y enlaza tookone (SDL)
-├─ makefile.wat            OpenWatcom: deps + core + editor (y ui) para DOS
+├─ makefile.linux          gcc: compila todo y enlaza tookone (SDL3); `test` corre los tests de consola
+├─ makefile.watcom-linux   OpenWatcom (`build`): deps + core + ui + microui → took.lib para DOS
 ├─ deps/
 │  └─ bsf/                 bsf.c, bsf.h, makefile, makefile.wat
 ├─ external/
@@ -129,7 +129,8 @@ TookOne/
 │  ├─ plat.h
 │  ├─ sdl/                 backend SDL (Windows + Linux)
 │  └─ win32/               backend nativo (después del MVP)
-├─ app/                    main.c
+├─ app/                    tookone.c (main)
+├─ tests/                  tests de consola de core/ y ui/
 └─ docs/
 ```
 
@@ -207,7 +208,7 @@ microui aporta: ventanas internas, paneles con scroll, botón, checkbox, slider,
 **Paneles acoplables**: layout propio simple (paneles anclados a izquierda/derecha/abajo con divisores arrastrables, o
 flotantes como ventana de microui). Resuelve la crítica a Take ONE (paleta rígida) sin un sistema de docking completo.
 
-## 6. Plataforma: SDL2 o SDL3 (por decidir)
+## 6. Plataforma: SDL3 (elegido)
 
 | | SDL2 | SDL3 |
 |---|---|---|
@@ -216,6 +217,7 @@ flotantes como ventana de microui). Resuelve la crítica a Take ONE (paleta ríg
 | Portapapeles de imágenes | Solo texto | Datos con tipo MIME |
 | Windows antiguos | Llega más atrás | Más moderno |
 
+Se eligió **SDL3** (3.4 en desarrollo; en Ubuntu 24.04 se compila desde el código fuente porque no está en `apt`).
 Como solo `platform/sdl/` incluye SDL, cambiar de versión afecta a un único backend. Los headers de SDL no son C89 estricto,
 así que ese backend se compila con flags algo más permisivos; el resto del código sigue en C89 estricto.
 
@@ -277,7 +279,7 @@ funcionalidad completa que se puede usar y probar en la app**, atravesando todas
 | # | Slice: "el usuario puede…" | Toca | Prueba manual |
 |---|---|---|---|
 | 0 ✅ | (base) leer/escribir `.bsf` | `deps/bsf` | tests STANDALONE (gcc + Watcom) |
-| 1 | **abrir un BMP y verlo con zoom** | `platform/sdl` (ventana, eventos, presentar), microui + `ui/uirend` + `ui/font`, `ui/canvas`, `core/img` + `core/bmp` (evaluar reutilizar `deps/imgfile`), `core/render`, `editor/view` | abrir `bmpio-engine/assets/j256.bmp`, hacer zoom |
+| 1 ✅ | **abrir un BMP y verlo con zoom** | `platform/sdl` (SDL3), microui + `ui/uirend` (con el control de imagen) + `ui/font`, `core/img`, `core/bmp` (propio: `deps/imgfile` solo lee 8 bpp y lee la cabecera como struct con `long`), `core/raster`, `app/tookone` | abrir `bmpio-engine/assets/j256.bmp`, hacer zoom; `--shot` para capturas sin pantalla |
 | 2 | **pintar con el lápiz eligiendo color de la paleta y guardar** | `ui/palette`, `editor/tool` (lápiz), `editor/doc`, `core/draw`, `core/bmp` (escritura) | pintar, guardar, reabrir en otro programa |
 | 3 | **deshacer / rehacer** | `editor/cmd` (undo por región), atajos Ctrl+Z / Ctrl+Y | pintar varios trazos y deshacer |
 | 4 | **crear un archivo nuevo** (tamaño, profundidad 1/4/8/16/24) | diálogo `ui/dlgnew`, `core/pal` (paletas por defecto) | crear 8 bpp y 1 bpp, pintar, guardar |
@@ -300,7 +302,6 @@ El orden después del slice 2 es orientativo: se puede reordenar según lo que h
 
 ## 11. Decisiones pendientes
 
-1. **SDL2 o SDL3** (§6).
-2. Sintaxis del script de texto para datos de juego (por ahora `KEY=VALUE`).
-3. Formato `MAP` dentro del `.bpk`.
-4. Fuente bitmap: diseñar una propia o usar una de dominio público (estilo VGA 8×8 / 8×16).
+1. Sintaxis del script de texto para datos de juego (por ahora `KEY=VALUE`).
+2. Formato `MAP` dentro del `.bpk`.
+3. Fuente bitmap: hoy se usa el atlas proporcional de la demo de microui (`ui/fontdata.h`, MIT). ¿Diseñar una propia estilo VGA 8×8 / 8×16?

@@ -375,3 +375,5 @@ deps/**/*.exe
 deps/**/*.obj
 # the Visual Studio rule "[Ll]og/" above would hide this dep
 !deps/log/
+# Windows download markers
+*:Zone.Identifier

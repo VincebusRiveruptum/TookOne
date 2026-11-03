@@ -1021,9 +1021,9 @@ static void _roundtrip(
     int comp
 )
 {
-    FILE *fp = NULL;
     BsfSequence a;
     BsfSequence b;
+    FILE *fp = NULL;
 
     fp = _tmpFile();
     _makeSeq(
@@ -1085,9 +1085,9 @@ static void _testRoundtrip(void)
 
 static void _testRleSmaller(void)
 {
+    BsfSequence a;
     FILE *raw = NULL;
     FILE *rle = NULL;
-    BsfSequence a;
 
     raw = _tmpFile();
     rle = _tmpFile();
@@ -1109,8 +1109,8 @@ static void _testRleSmaller(void)
 
 static void _testValidation(void)
 {
-    FILE *fp = NULL;
     BsfSequence a;
+    FILE *fp = NULL;
 
     fp = _tmpFile();
     _makeSeq(
@@ -1167,9 +1167,9 @@ static void _testValidation(void)
 /* Writes a valid file and returns its bytes for corruption tests. */
 static BsfU8 *_validFile(long *size)
 {
+    BsfSequence a;
     FILE *fp = NULL;
     BsfU8 *buf = NULL;
-    BsfSequence a;
 
     fp = _tmpFile();
     _makeSeq(
@@ -1190,8 +1190,8 @@ static BsfU8 *_validFile(long *size)
 static int _readFrom(const BsfU8 *data, long size, unsigned int options)
 {
     int err;
-    FILE *fp = NULL;
     BsfSequence s;
+    FILE *fp = NULL;
 
     fp = _fileFrom(data, size);
     err = bsfRead(fp, &s, options);
@@ -1270,9 +1270,9 @@ static void _testUnknownChunk(void)
 
 static void _testEmbedded(void)
 {
-    FILE *fp = NULL;
     BsfSequence a;
     BsfSequence b;
+    FILE *fp = NULL;
 
     /* A .bsf can be read from the middle of a bigger file (.bss/.bpk). */
     fp = _tmpFile();

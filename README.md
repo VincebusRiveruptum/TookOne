@@ -12,22 +12,37 @@ be reused by the BMPIO MS-DOS game engine.
 
 | Path | Contents |
 |---|---|
-| `deps/bsf/` | C89 `.bsf` reader/writer, shared with BMPIO (gcc, clang, MSVC, OpenWatcom) |
+| `app/` | Entry point and main loop (`tookone.c`) |
+| `core/` | Image model, BMP reader, software rasterizer (C89, libc only) |
+| `ui/` | microui software renderer, bitmap font, custom controls |
+| `platform/` | Platform contract (`plat.h`) and the SDL3 backend |
+| `deps/bsf/` | `.bsf` reader/writer, shared with BMPIO |
 | `external/microui/` | microui 2.02 (MIT), vendored unmodified |
+| `tests/` | Console tests |
 | `docs/` | Requirements, Take ONE 4 analysis, architecture plan, format specs, C code style |
-
-Planned: `core/`, `editor/`, `ui/`, `platform/`, `app/` (see the [architecture plan](docs/arquitectura.md)).
 
 ## Building
 
+Requirements: gcc, GNU make, SDL3 (found through `pkg-config sdl3`).
+
 ```sh
-make -C deps/bsf test       # builds and runs the STANDALONE tests (gcc)
+make -f makefile.linux              # build/linux/tookone
+make -f makefile.linux test         # console tests (no SDL needed)
+./build/linux/tookone some.bmp      # or drop a BMP on the window
 ```
 
-For MS-DOS (DOS/4G) with OpenWatcom:
+Zoom: `+` / `-` / `0`, Ctrl + mouse wheel, or the toolbar buttons.
+
+MS-DOS (DOS/4G) build of the portable code (`deps/`, `core/`, `ui/`, microui) with OpenWatcom:
 
 ```sh
-cd deps/bsf && wmake -f makefile.wat     # bsf.obj + bsftest.exe
+wmake -f makefile.watcom-linux build    # build/dos/took.lib + test executables
+```
+
+C89 conformance of both targets (see `.agents/skills/c89-conformance`):
+
+```sh
+python3 .agents/skills/c89-conformance/scripts/check_c89.py --target all
 ```
 
 ## Documentation
