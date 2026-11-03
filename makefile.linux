@@ -1,76 +1,97 @@
 # TookOne - Linux build (GNU make + gcc)
 #
 #   make -f makefile.linux          -> build/linux/tookone
-#   make -f makefile.linux test     -> runs deps/bsf and core tests
+#   make -f makefile.linux test     -> builds and runs every STANDALONE test
 #   make -f makefile.linux clean
 #
 # Own code: strict C89. external/ (third party) and platform/sdl (SDL3
-# headers are C99) use their own flags, see docs/c-code-stlye.md (scope).
+# headers are C99) use their own flags, see .agents/rules/c-code-stlye.md.
 
 CC       = gcc
 OUT      = build/linux
+TOUT     = $(OUT)/test
 
 C89      = -std=c89 -pedantic -Wall -Wextra -O2 -g
 EXTFLAGS = -std=c99 -O2 -g
 SDLFLAGS = -std=c99 -Wall -Wextra -O2 -g $(shell pkg-config --cflags sdl3)
 SDLLIBS  = $(shell pkg-config --libs sdl3)
 
-CORE     = $(OUT)/img.o $(OUT)/bmp.o $(OUT)/raster.o
-UI       = $(OUT)/font.o $(OUT)/uirend.o
-EXT      = $(OUT)/microui.o
-PLAT     = $(OUT)/platsdl.o
-APP      = $(OUT)/tookone.o
+vpath %.c deps/endian core/image core/raster ui app
+
+# Objects by module, lowest level first (see .agents/rules/layers.md)
+ENDIAN   = $(OUT)/endian.o
+MICROUI  = $(OUT)/microui.o
+IMAGE    = $(OUT)/img_base.o $(OUT)/img_bmp.o
+RASTER   = $(OUT)/ras_base.o $(OUT)/ras_blit.o
+UI       = $(OUT)/ui_rend.o $(OUT)/ui_font.o $(OUT)/ui_fdata.o
+HAL      = $(OUT)/hal_sdl.o
+APP      = $(OUT)/main.o $(OUT)/app_zoom.o $(OUT)/app_file.o \
+           $(OUT)/app_inp.o $(OUT)/app_ui.o
+
+LIBS     = $(UI) $(RASTER) $(IMAGE) $(ENDIAN) $(MICROUI)
+HEADERS  = $(wildcard core/*.h core/*/*.h ui/*.h app/*.h hal/*.h \
+           deps/*/*.h external/microui/*.h)
+
+TESTS    = endian bsf img_base img_bmp ras_base ras_blit ui_font ui_rend
 
 all: $(OUT)/tookone
 
-$(OUT):
-	mkdir -p $(OUT)
+$(OUT) $(TOUT):
+	mkdir -p $@
 
-$(OUT)/tookone: $(APP) $(PLAT) $(UI) $(CORE) $(EXT)
+$(OUT)/tookone: $(APP) $(HAL) $(LIBS)
 	$(CC) -o $@ $^ $(SDLLIBS)
 
 # ---- own C89 code ----
 
-$(OUT)/%.o: core/%.c | $(OUT)
-	$(CC) $(C89) -c $< -o $@
-
-$(OUT)/%.o: ui/%.c | $(OUT)
-	$(CC) $(C89) -c $< -o $@
-
-$(OUT)/%.o: app/%.c | $(OUT)
+$(OUT)/%.o: %.c $(HEADERS) | $(OUT)
 	$(CC) $(C89) -c $< -o $@
 
 # ---- third party / platform ----
 
-$(OUT)/microui.o: external/microui/microui.c | $(OUT)
+$(OUT)/microui.o: external/microui/microui.c $(HEADERS) | $(OUT)
 	$(CC) $(EXTFLAGS) -c $< -o $@
 
-$(OUT)/platsdl.o: platform/sdl/platsdl.c | $(OUT)
+$(OUT)/hal_sdl.o: platform/sdl/hal_sdl.c hal/hal.h | $(OUT)
 	$(CC) $(SDLFLAGS) -c $< -o $@
 
-# ---- tests ----
+# ---- STANDALONE tests: the file under test + the rest of its module
+#      + the modules below it ----
 
-$(OUT)/coretest: tests/coretest.c $(CORE) $(OUT)/font.o | $(OUT)
-	$(CC) $(C89) -o $@ tests/coretest.c $(CORE) $(OUT)/font.o
+T = $(CC) $(C89) -DSTANDALONE -o $@
 
-$(OUT)/bsftest: deps/bsf/bsf.c deps/bsf/bsf.h | $(OUT)
-	$(CC) $(C89) -DSTANDALONE -o $@ deps/bsf/bsf.c
+$(TOUT)/endian: deps/endian/endian.c $(HEADERS) | $(TOUT)
+	$(T) $<
 
-test: $(OUT)/coretest $(OUT)/bsftest
-	cd $(OUT) && ./bsftest && ./coretest
+$(TOUT)/bsf: deps/bsf/bsf.c deps/bsf/bsf.h | $(TOUT)
+	$(T) $<
+
+$(TOUT)/img_base: core/image/img_base.c $(HEADERS) | $(TOUT)
+	$(T) $<
+
+$(TOUT)/img_bmp: core/image/img_bmp.c $(OUT)/img_base.o $(ENDIAN) | $(TOUT)
+	$(T) $^
+
+$(TOUT)/ras_base: core/raster/ras_base.c $(OUT)/ras_blit.o $(IMAGE) \
+                  $(ENDIAN) | $(TOUT)
+	$(T) $^
+
+$(TOUT)/ras_blit: core/raster/ras_blit.c $(OUT)/ras_base.o $(IMAGE) \
+                  $(ENDIAN) | $(TOUT)
+	$(T) $^
+
+$(TOUT)/ui_font: ui/ui_font.c $(OUT)/ui_rend.o $(OUT)/ui_fdata.o \
+                 $(RASTER) $(IMAGE) $(ENDIAN) $(MICROUI) | $(TOUT)
+	$(T) $^
+
+$(TOUT)/ui_rend: ui/ui_rend.c $(OUT)/ui_font.o $(OUT)/ui_fdata.o \
+                 $(RASTER) $(IMAGE) $(ENDIAN) $(MICROUI) | $(TOUT)
+	$(T) $^
+
+test: $(addprefix $(TOUT)/,$(TESTS))
+	cd $(TOUT) && for t in $(TESTS); do ./$$t || exit 1; done
 
 clean:
 	rm -rf $(OUT)
-
-# Header dependencies (kept by hand; few files)
-$(OUT)/img.o:     core/img.h core/tktypes.h
-$(OUT)/bmp.o:     core/bmp.h core/img.h
-$(OUT)/raster.o:  core/raster.h core/img.h
-$(OUT)/font.o:    ui/font.h ui/fontdata.h core/raster.h
-$(OUT)/uirend.o:  ui/uirend.h ui/font.h core/raster.h \
-                  external/microui/microui.h
-$(OUT)/tookone.o: platform/plat.h ui/uirend.h core/bmp.h \
-                  external/microui/microui.h
-$(OUT)/platsdl.o: platform/plat.h
 
 .PHONY: all test clean

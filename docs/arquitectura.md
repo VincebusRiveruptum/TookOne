@@ -34,13 +34,17 @@ Documentos relacionados: [`arch.md`](arch.md) (exploración de opciones) · [`c-
 
 Regla de oro: **las dependencias apuntan hacia adentro**. Solo `platform/` conoce SDL (o Win32, o el hardware VGA).
 
+La jerarquía oficial de módulos (niveles, quién puede incluir a quién) está en
+[`.agents/rules/layers.md`](../.agents/rules/layers.md) y se verifica con
+`.agents/skills/layer-check/scripts/check_layers.py`. El diagrama de abajo es una vista general.
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  app/        main + bucle: une plataforma, UI y editor            │
 ├──────────────────────────────────────────────────────────────────┤
-│  platform/   plat_*  — ventana, eventos, presentar framebuffer,    │  sdl/  (primero)
-│              tiempo, portapapeles, diálogos de archivo             │  win32/ (después del MVP)
-│                                                                    │  dos/  (BMPIO: Mode X, teclado, mouse)
+│  hal/ +      hal_*   — ventana, eventos, presentar framebuffer,    │  platform/sdl/  (primero)
+│  platform/   tiempo, portapapeles, diálogos de archivo             │  platform/win32/ (post-MVP)
+│                                                                    │  platform/dos/ (BMPIO: Mode X)
 ├──────────────────────────────────────────────────────────────────┤
 │  ui/         controles propios sobre microui + renderer por        │  menú, toolbar, paleta, film strip,
 │              software que pinta los comandos de microui            │  canvas, diálogos; fuente bitmap
@@ -62,7 +66,7 @@ en un framebuffer en memoria, reutilizando `core/` (rectángulos, blit de glifos
 **presenta** ese framebuffer:
 
 ```
-editor + ui ──► microui (comandos) ──► ui/render (software) ──► framebuffer ──► plat_present()
+editor + ui ──► microui (comandos) ──► ui/ui_rend (software) ──► framebuffer ──► hal_present()
                                                                                     ├─ SDL: textura streaming
                                                                                     ├─ Win32: StretchDIBits
                                                                                     └─ DOS: copia a VGA (Mode X)
@@ -78,33 +82,33 @@ Consecuencias:
 - **Eficiencia**: se redibuja solo cuando llega un evento (no a 60 fps como un juego), y se puede comparar la lista de
   comandos de microui con la del frame anterior para no redibujar si no cambió nada.
 
-### 2.2 Interfaz de plataforma
+### 2.2 Interfaz de plataforma (`hal/`)
 
-Contrato pequeño y explícito (nombres según `c-code-stlye.md`, módulo `plat`):
+Contrato pequeño y explícito en `hal/hal.h` (prefijo `hal_`, como en dcode-ide). Lo implementa cada backend de
+`platform/<nombre>/` y solo lo usa `app` (ver `.agents/rules/layers.md`):
 
 ```c
-/* platform/plat.h */
-int  plat_init(const PlatConfig *cfg);
-void plat_shutdown(void);
+/* hal/hal.h (hoy) */
+int  hal_init(const char *title, int width, int height);
+void hal_shutdown(void);
 
-int  plat_waitEvent(PlatEvent *ev, int timeoutMs);     /* 0 = sin evento */
-void plat_present(const unsigned char *argb, int w, int h); /* 4 bytes/px */
+void hal_windowSize(int *width, int *height);
+void hal_setTitle(const char *title);
+void hal_present(const void *argb, int width, int height);
 
-unsigned long plat_ticksMs(void);
+int  hal_waitEvent(HalEvent *ev, int timeoutMs);    /* 0 = sin evento */
+unsigned long hal_ticksMs(void);
 
-int  plat_openFileDialog(char *out, int outLen, const char *filter);
-int  plat_saveFileDialog(char *out, int outLen, const char *filter);
-int  plat_clipboardSetImage(const PlatImage *img);
-int  plat_clipboardGetImage(PlatImage *img);
+/* cuando un slice los necesite: diálogos de archivo, portapapeles */
 ```
 
-`PlatEvent` es un evento abstracto (mouse, teclado, texto, rueda, resize, cerrar). Cada backend traduce sus eventos
-(`SDL_Event`, `WM_*`, interrupciones de teclado/mouse en DOS) a este formato.
+`HalEvent` es un evento abstracto (mouse, teclado, texto, rueda, resize, cerrar, soltar archivo). Cada backend traduce
+sus eventos (`SDL_Event`, `WM_*`, interrupciones de teclado/mouse en DOS) a este formato.
 
 ### 2.3 ¿Qué va en `deps/`, `core/`, `external/`?
 
 - `deps/`: genérico, portable y útil fuera de TookOne (ej. `bsf`, que usa BMPIO). Cada dep es autocontenida (un `.c` + un `.h`).
-- `core/`, `editor/`, `ui/`, `platform/`: dominio de TookOne. Funciones con prefijo de módulo (`img_putPixel`, `doc_addFrame`, `ui_menuBar`, `plat_present`).
+- `core/<módulo>/`, `editor/`, `ui/`, `hal/`, `app/`: dominio de TookOne. Funciones con prefijo de módulo (`img_loadBmp`, `ras_fillRect`, `ui_image`, `hal_present`).
 - `external/`: código de terceros tal cual (microui). No se modifica, para poder actualizarlo y contribuir arreglos al proyecto original.
 
 Candidato a dep cuando madure: los **controles propios de `ui/`** que no dependan de TookOne (menú, toolbar, fuente bitmap,
@@ -116,21 +120,24 @@ Estructura objetivo; las carpetas se crean a medida que un slice las necesita (�
 
 ```
 TookOne/
-├─ makefile.linux          gcc: compila todo y enlaza tookone (SDL3); `test` corre los tests de consola
-├─ makefile.watcom-linux   OpenWatcom (`build`): deps + core + ui + microui → took.lib para DOS
+├─ makefile.linux          gcc: tookone (SDL3); `test` corre todos los tests STANDALONE
+├─ makefile.watcom-linux   OpenWatcom (`build`): deps + core + ui + microui → took.lib y tests para DOS
 ├─ deps/
-│  └─ bsf/                 bsf.c, bsf.h, makefile, makefile.wat
+│  ├─ bsf/                 bsf.c, bsf.h (lector/escritor .bsf, con makefiles propios)
+│  └─ endian/              endian.c, endian.h (lectura little-endian)
 ├─ external/
 │  └─ microui/             microui.c, microui.h, LICENSE, VERSION.md (sin modificar)
-├─ core/                   img, pal, draw, xform, color, render, bmp, jascpal
-├─ editor/                 doc, tool, cmd (undo), view (viewport)
-├─ ui/                     uirend (renderer por software), font, menu, toolbar, palette, film, canvas, dialogs
+├─ core/
+│  ├─ std.h                includes comunes y TkU8/TkU16/TkU32
+│  ├─ image/               image.h, private.h, img_base.c, img_bmp.c
+│  └─ raster/              raster.h, private.h, ras_base.c, ras_blit.c
+├─ editor/                 (slice 2+) doc, tool, cmd (undo), view
+├─ ui/                     ui.h, private.h, ui_rend.c, ui_font.c, ui_fdata.c
+├─ hal/                    hal.h (contrato de plataforma)
 ├─ platform/
-│  ├─ plat.h
-│  ├─ sdl/                 backend SDL (Windows + Linux)
-│  └─ win32/               backend nativo (después del MVP)
-├─ app/                    tookone.c (main)
-├─ tests/                  tests de consola de core/ y ui/
+│  ├─ sdl/                 hal_sdl.c (Windows + Linux)
+│  └─ win32/               (después del MVP)
+├─ app/                    private.h, main.c, app_zoom.c, app_file.c, app_inp.c, app_ui.c
 └─ docs/
 ```
 
@@ -194,7 +201,7 @@ microui aporta: ventanas internas, paneles con scroll, botón, checkbox, slider,
 
 | Control | Notas |
 |---|---|
-| `uirend` | Rasteriza los comandos de microui en el framebuffer (rect, texto, ícono, clip) |
+| `ui_rend` | Rasteriza los comandos de microui en el framebuffer (rect, texto, ícono, clip) e incluye el control de imagen |
 | `font` | Fuente bitmap fija (estilo VGA / Take ONE); `text_width` / `text_height` para microui |
 | Barra de menú + menús | Con popups de microui; atajos de teclado en una tabla central (base: atajos de Take ONE, `take4_analisis.md` §4.8) |
 | Toolbar | Botones con íconos propios (dibujados por ti; no se usan recursos de Take ONE) |
@@ -235,7 +242,7 @@ Familia `"TOOK"` + tipo (ver `bsf_format.md`); cada nivel empotra al anterior si
 |---|---|
 | BSF | `deps/bsf` |
 | BSS / BPK | deps futuras (`bss` dependerá de `bsf`: excepción documentada) |
-| BMP 1/4/8/16/24 | `core/bmp` (control exacto de paleta) |
+| BMP 1/4/8/16/24 | `core/image` (`img_bmp.c`, control exacto de paleta) |
 | JASC PAL | `core/jascpal` |
 | PNG / GIF | Post-MVP: decodificador/encoder propio o single-header (p.ej. `stb_image` para leer) en `external/` |
 
@@ -279,15 +286,15 @@ funcionalidad completa que se puede usar y probar en la app**, atravesando todas
 | # | Slice: "el usuario puede…" | Toca | Prueba manual |
 |---|---|---|---|
 | 0 ✅ | (base) leer/escribir `.bsf` | `deps/bsf` | tests STANDALONE (gcc + Watcom) |
-| 1 ✅ | **abrir un BMP y verlo con zoom** | `platform/sdl` (SDL3), microui + `ui/uirend` (con el control de imagen) + `ui/font`, `core/img`, `core/bmp` (propio: `deps/imgfile` solo lee 8 bpp y lee la cabecera como struct con `long`), `core/raster`, `app/tookone` | abrir `bmpio-engine/assets/j256.bmp`, hacer zoom; `--shot` para capturas sin pantalla |
-| 2 | **pintar con el lápiz eligiendo color de la paleta y guardar** | `ui/palette`, `editor/tool` (lápiz), `editor/doc`, `core/draw`, `core/bmp` (escritura) | pintar, guardar, reabrir en otro programa |
+| 1 ✅ | **abrir un BMP y verlo con zoom** | `platform/sdl` (SDL3), microui + `ui` (renderer, fuente, control de imagen), `core/image` (lector BMP propio: `deps/imgfile` solo lee 8 bpp y lee la cabecera como struct con `long`), `core/raster`, `deps/endian`, `hal` + `platform/sdl`, `app` | abrir `bmpio-engine/assets/j256.bmp`, hacer zoom; `--shot` para capturas sin pantalla |
+| 2 | **pintar con el lápiz eligiendo color de la paleta y guardar** | `ui` (paleta), `editor` (doc, lápiz), `core/raster` o un módulo `core/draw`, `core/image` (escritura BMP) | pintar, guardar, reabrir en otro programa |
 | 3 | **deshacer / rehacer** | `editor/cmd` (undo por región), atajos Ctrl+Z / Ctrl+Y | pintar varios trazos y deshacer |
 | 4 | **crear un archivo nuevo** (tamaño, profundidad 1/4/8/16/24) | diálogo `ui/dlgnew`, `core/pal` (paletas por defecto) | crear 8 bpp y 1 bpp, pintar, guardar |
 | 5 | **dibujar formas y ver la grilla** | línea, rectángulo, elipse, relleno, cuentagotas, grid (Ctrl+G), toolbar | dibujar cada forma con zoom y grilla |
 | 6 | **convertir un BMP en secuencia y agregarle frames** | `ui/film` (film strip), `editor/doc` multi-frame, guardar/abrir `.bsf` | dibujar, "Guardar como secuencia", agregar frames, reabrir |
-| 7 | **reproducir la secuencia** | `ui/play` (play/pausa, loop, delay), `plat_ticksMs` | ver la animación en loop |
+| 7 | **reproducir la secuencia** | `ui/play` (play/pausa, loop, delay), `hal_ticksMs` | ver la animación en loop |
 | 8 | **usar onion skin** | `core/render` (composición), opciones anterior/siguiente | animar viendo el frame anterior |
-| 9 | **importar una carpeta `FRAMEn.bmp` de BMPIO como secuencia** | importador en `editor`/`core/bmp` | convertir `bmpio-engine/assets/run/` a `.bsf` |
+| 9 | **importar una carpeta `FRAMEn.bmp` de BMPIO como secuencia** | importador en `editor`/`core/image` | convertir `bmpio-engine/assets/run/` a `.bsf` |
 | 10 | **rotar los 3 colores por atajo y usar la transparencia** | `EditorState`, máscara al pegar/onion skin | — |
 | 11 | **importar / exportar paletas JASC `.pal`** | `core/jascpal`, menú | ida y vuelta con otro editor |
 | 12 | **pintar con pinceles, patrones y dithering** | `core/draw`, `ui` selector de pincel/patrón | — |
@@ -304,4 +311,4 @@ El orden después del slice 2 es orientativo: se puede reordenar según lo que h
 
 1. Sintaxis del script de texto para datos de juego (por ahora `KEY=VALUE`).
 2. Formato `MAP` dentro del `.bpk`.
-3. Fuente bitmap: hoy se usa el atlas proporcional de la demo de microui (`ui/fontdata.h`, MIT). ¿Diseñar una propia estilo VGA 8×8 / 8×16?
+3. Fuente bitmap: hoy se usa el atlas proporcional de la demo de microui (`ui/ui_fdata.c`, MIT). ¿Diseñar una propia estilo VGA 8×8 / 8×16?

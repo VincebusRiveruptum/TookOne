@@ -90,3 +90,123 @@ void process_line(Line *line) {
 '''
 
 NOTE: We need to improve the dependency management so each one are fully isolated from the rest, avoiding cross-references.
+
+## Function description above definition
+
+All functions should have a brief description above the function header, it should explain what it does but NOT
+how, what expects and what returns. Nothing else. It goes above the **definition** (`.c`), for public and private
+functions alike; headers only keep short group comments ("Lifecycle", "I/O", ...).
+
+'''c
+/*
+ * Loads a BMP file into img.
+ * Expects: a readable path and an Img to fill.
+ * Returns: BMP_OK, or a BMP_ERR_* code (img is left empty).
+ */
+int bmp_load(const char *path, Img *img)
+'''
+
+## Error handling and logging
+
+Logging is aimed at the programmer: simple to write and informative enough to debug. Three levels:
+
+- **Info** (`log_info`): plain informative message.
+- **Warning** (`log_warn`): recoverable condition that **can happen with real data**, even if the code is correct:
+  missing or malformed file, not enough memory for an image whose size the user chose, etc. It logs and the
+  function returns an error value or NULL.
+- **Error** (`log_error`): a **bug** (broken invariant, impossible state, index out of range that "cannot happen",
+  failure of a small fixed-size allocation at startup). It logs and ends with `exit(1)`. It must never be caused by
+  user input or by the environment: those are warnings. Memory errors are not automatically errors; decide by
+  the cause.
+
+Rules:
+
+- Messages start with the function name between brackets: `log_warn("[bmp_load] cannot open %s", path);`
+  C89 has no `__func__` nor variadic macros, so the name is written by hand.
+- Release builds (no `-DDEBUG`): `log_info` is disabled; `log_warn` and `log_error` stay, `log_error` still ends the
+  program (stopping is safer than going on with a corrupted state). Messages go to the log file.
+- **Deps never log nor exit.** They return error codes (`BSF_ERR_*`) and the caller decides the level and logs.
+  This keeps deps free of cross-references (e.g. to `deps/log`) and lets other programs decide how to fail.
+- Messages for the **end user** (status bar, dialogs) are a separate concern, handled in a centralized way (TBD).
+
+## Modules by responsibility
+
+Each module is a folder with one responsibility:
+
+'''
+core/image/
+|- image.h        public API: the only header other modules may include
+|- private.h      types / functions shared by the module's own files; never included from outside,
+|                 never included from image.h
+|- img_base.c     one file per responsibility, named <prefix>_<responsibility>.c (8.3)
+|- img_bmp.c
+'''
+
+- Modules talk to each other following the hierarchy defined in [`layers.md`](layers.md): a module only includes
+  and calls modules of a **lower** level; modules of the same level never call each other (the upper level
+  coordinates them).
+- Private functions: `_<prefix>_name`, both `static` file helpers and module-internal functions declared in
+  `private.h` (e.g. `_img_readFile`). What tells them apart is where they are declared.
+- State lives in structs passed by pointer. Globals only inside a module and `static`; no `extern` state shared
+  between modules.
+- Shared definitions for the whole project (common includes, `bool`, fixed-size types) live in `core/std.h`.
+
+## File layout: outside-in
+
+Inside each `.c` file, functions go from the outside to the inside: the lower a function is in the file, the less
+likely it is called from somewhere else.
+
+'''c
+/*
+ * img_bmp - BMP reader / writer (module: image).
+ */
+#include "image.h"
+#include "private.h"
+
+/* ---- Prototypes of file-private functions ---- */
+static int _img_readFile(const char *path, TkU8 **out, long *size);
+
+/* ================================================================
+ * 1. Public API: callable from other modules (declared in image.h)
+ * ================================================================ */
+
+/* ================================================================
+ * 2. Module internal: shared by this module's files (private.h)
+ * ================================================================ */
+
+/* ================================================================
+ * 3. File private: helpers used only here (static)
+ * ================================================================ */
+
+#ifdef STANDALONE
+/* ================================================================
+ * 4. Tests: built with -DSTANDALONE as a test program
+ * ================================================================ */
+int main(void) { ... }
+#endif
+'''
+
+- In C89 a `static` function defined after its caller needs a prototype first (otherwise the compiler assumes an
+  implicit declaration and then clashes with `static`). That is why the file starts with the block of private
+  prototypes; it also works as the index of the file.
+- Tests: every file ends with its `#ifdef STANDALONE` block, in deps **and** in core modules. The makefile builds
+  each one with `-DSTANDALONE`, linking the rest of its module.
+
+## Scope
+
+This guide applies to **all of our own C code**:
+
+| Folder | Applies? |
+|---|---|
+| `deps/` | Yes, fully (including *Dependencies*) |
+| `core/`, `editor/`, `ui/`, `hal/`, `app/` | Yes, fully |
+| `platform/<backend>/` | Yes, with one exception: system headers (SDL, `windows.h`) are not strict C89, so the backend may be built with more permissive flags. Its own code still follows the guide |
+| `external/` | No. Third-party code (e.g. microui) is kept **unmodified**, with its own style, so it can be updated and fixes contributed upstream |
+| Build files (`.github/`) and `docs/` | No |
+
+### Exception: names in shared deps
+
+Deps have no module prefix. In deps that are linked together with other libraries (SDL, microui, each platform's
+libc...) a generic name can clash with another symbol (e.g. `crc32` from zlib). In those deps public functions
+start with the **dep name in camelCase, without underscore**: `bsfRead`, `bsfWrite`, `bsfInit`. Types use
+PascalCase with the same name: `BsfSequence`, `BsfFrame`. Constants: `BSF_*`.

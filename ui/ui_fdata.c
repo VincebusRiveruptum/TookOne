@@ -1,18 +1,14 @@
 /*
- * fontdata - glyph atlas for ui/font.c (generated, do not edit).
+ * ui_fdata - glyph atlas of the UI font (module: ui). Generated data.
  *
  * Derived from demo/atlas.inl of microui 2.02
  * (https://github.com/rxi/microui), MIT license, see external/microui/LICENSE.
  * Converted to C89: designated initializers replaced by ordered tables.
  */
-#ifndef FONTDATA_H
-#define FONTDATA_H
+#include "private.h"
 
-#define FONT_TEX_W 128
-#define FONT_TEX_H 128
-
-/* 8-bit alpha, FONT_TEX_W * FONT_TEX_H */
-static const TkU8 _fontTexture[FONT_TEX_W * FONT_TEX_H] = {
+/* 8-bit alpha, UI_FONT_TEX_W * UI_FONT_TEX_H */
+const TkU8 _ui_fontTexture[UI_FONT_TEX_W * UI_FONT_TEX_H] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1382,7 +1378,7 @@ static const TkU8 _fontTexture[FONT_TEX_W * FONT_TEX_H] = {
 };
 
 /* x, y, w, h of ASCII 32..127 */
-static const int _fontGlyphs[96][4] = {
+const int _ui_fontGlyphs[UI_FONT_GLYPHS][4] = {
     {  84,  68,  2, 17 },  /*  32   */
     {  39,  68,  3, 17 },  /*  33 ! */
     { 114,  51,  5, 17 },  /*  34 " */
@@ -1482,11 +1478,9 @@ static const int _fontGlyphs[96][4] = {
 };
 
 /* x, y, w, h of icons: close, check, collapsed, expanded */
-static const int _fontIcons[4][4] = {
+const int _ui_fontIcons[UI_FONT_ICONS][4] = {
     {  88,  68, 16, 16 },
     {   0,   0, 18, 18 },
     { 113,  68,  5,  7 },
     { 118,  68,  7,  5 },
 };
-
-#endif /* FONTDATA_H */
