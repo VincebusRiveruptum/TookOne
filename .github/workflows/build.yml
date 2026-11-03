@@ -1,0 +1,14 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  c89:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: deps/bsf tests (gcc, C89)
+        run: make -C deps/bsf test
