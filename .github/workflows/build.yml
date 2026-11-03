@@ -1,0 +1,14 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  c89:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Console tests (gcc, C89): deps/bsf + core
+        run: make -f makefile.linux test

@@ -1,0 +1,76 @@
+# TookOne - Linux build (GNU make + gcc)
+#
+#   make -f makefile.linux          -> build/linux/tookone
+#   make -f makefile.linux test     -> runs deps/bsf and core tests
+#   make -f makefile.linux clean
+#
+# Own code: strict C89. external/ (third party) and platform/sdl (SDL3
+# headers are C99) use their own flags, see docs/c-code-stlye.md (scope).
+
+CC       = gcc
+OUT      = build/linux
+
+C89      = -std=c89 -pedantic -Wall -Wextra -O2 -g
+EXTFLAGS = -std=c99 -O2 -g
+SDLFLAGS = -std=c99 -Wall -Wextra -O2 -g $(shell pkg-config --cflags sdl3)
+SDLLIBS  = $(shell pkg-config --libs sdl3)
+
+CORE     = $(OUT)/img.o $(OUT)/bmp.o $(OUT)/raster.o
+UI       = $(OUT)/font.o $(OUT)/uirend.o
+EXT      = $(OUT)/microui.o
+PLAT     = $(OUT)/platsdl.o
+APP      = $(OUT)/tookone.o
+
+all: $(OUT)/tookone
+
+$(OUT):
+	mkdir -p $(OUT)
+
+$(OUT)/tookone: $(APP) $(PLAT) $(UI) $(CORE) $(EXT)
+	$(CC) -o $@ $^ $(SDLLIBS)
+
+# ---- own C89 code ----
+
+$(OUT)/%.o: core/%.c | $(OUT)
+	$(CC) $(C89) -c $< -o $@
+
+$(OUT)/%.o: ui/%.c | $(OUT)
+	$(CC) $(C89) -c $< -o $@
+
+$(OUT)/%.o: app/%.c | $(OUT)
+	$(CC) $(C89) -c $< -o $@
+
+# ---- third party / platform ----
+
+$(OUT)/microui.o: external/microui/microui.c | $(OUT)
+	$(CC) $(EXTFLAGS) -c $< -o $@
+
+$(OUT)/platsdl.o: platform/sdl/platsdl.c | $(OUT)
+	$(CC) $(SDLFLAGS) -c $< -o $@
+
+# ---- tests ----
+
+$(OUT)/coretest: tests/coretest.c $(CORE) $(OUT)/font.o | $(OUT)
+	$(CC) $(C89) -o $@ tests/coretest.c $(CORE) $(OUT)/font.o
+
+$(OUT)/bsftest: deps/bsf/bsf.c deps/bsf/bsf.h | $(OUT)
+	$(CC) $(C89) -DSTANDALONE -o $@ deps/bsf/bsf.c
+
+test: $(OUT)/coretest $(OUT)/bsftest
+	cd $(OUT) && ./bsftest && ./coretest
+
+clean:
+	rm -rf $(OUT)
+
+# Header dependencies (kept by hand; few files)
+$(OUT)/img.o:     core/img.h core/tktypes.h
+$(OUT)/bmp.o:     core/bmp.h core/img.h
+$(OUT)/raster.o:  core/raster.h core/img.h
+$(OUT)/font.o:    ui/font.h ui/fontdata.h core/raster.h
+$(OUT)/uirend.o:  ui/uirend.h ui/font.h core/raster.h \
+                  external/microui/microui.h
+$(OUT)/tookone.o: platform/plat.h ui/uirend.h core/bmp.h \
+                  external/microui/microui.h
+$(OUT)/platsdl.o: platform/plat.h
+
+.PHONY: all test clean

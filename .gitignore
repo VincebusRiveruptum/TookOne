@@ -361,3 +361,19 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# TookOne C89 rebuild (gcc / OpenWatcom)
+/build*/
+*.o
+*.lib
+*.err
+deps/bsf/bsftest
+deps/bsf/*.o
+deps/bsf/*.obj
+deps/bsf/bsftest.exe
+# compiled outputs inside deps (Watcom / gcc)
+deps/**/*.exe
+deps/**/*.obj
+# the Visual Studio rule "[Ll]og/" above would hide this dep
+!deps/log/
+# Windows download markers
+*:Zone.Identifier

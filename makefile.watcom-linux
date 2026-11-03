@@ -1,0 +1,59 @@
+# TookOne - MS-DOS (DOS/4G) build of the portable code, OpenWatcom wmake.
+#
+#   wmake -f makefile.watcom-linux build
+#
+# Builds what BMPIO can reuse: deps/bsf, core/, ui/ and microui into
+# took.lib, plus the console tests as DOS executables. The SDL platform
+# backend and the desktop app are not built here.
+
+CC      = wcc386
+CFLAGS  = -za -w4 -zq -bt=dos -4r -s -otexan
+OUT     = build/dos
+
+OBJS    = $(OUT)/bsf.obj $(OUT)/img.obj $(OUT)/bmp.obj $(OUT)/raster.obj &
+          $(OUT)/font.obj $(OUT)/uirend.obj $(OUT)/microui.obj
+
+build: $(OUT) $(OUT)/took.lib $(OUT)/bsftest.exe $(OUT)/coretest.exe .SYMBOLIC
+
+$(OUT): .SYMBOLIC
+	mkdir -p $(OUT)
+
+$(OUT)/took.lib: $(OBJS)
+	wlib -q -n -b $@ $(OBJS)
+
+$(OUT)/bsf.obj: deps/bsf/bsf.c deps/bsf/bsf.h
+	$(CC) $(CFLAGS) -fo=$@ deps/bsf/bsf.c
+
+$(OUT)/img.obj: core/img.c core/img.h core/tktypes.h
+	$(CC) $(CFLAGS) -fo=$@ core/img.c
+
+$(OUT)/bmp.obj: core/bmp.c core/bmp.h core/img.h
+	$(CC) $(CFLAGS) -fo=$@ core/bmp.c
+
+$(OUT)/raster.obj: core/raster.c core/raster.h core/img.h
+	$(CC) $(CFLAGS) -fo=$@ core/raster.c
+
+$(OUT)/font.obj: ui/font.c ui/font.h ui/fontdata.h
+	$(CC) $(CFLAGS) -fo=$@ ui/font.c
+
+$(OUT)/uirend.obj: ui/uirend.c ui/uirend.h external/microui/microui.h
+	$(CC) $(CFLAGS) -fo=$@ ui/uirend.c
+
+$(OUT)/microui.obj: external/microui/microui.c external/microui/microui.h
+	$(CC) $(CFLAGS) -fo=$@ external/microui/microui.c
+
+$(OUT)/bsftest.obj: deps/bsf/bsf.c deps/bsf/bsf.h
+	$(CC) $(CFLAGS) -dSTANDALONE -fo=$@ deps/bsf/bsf.c
+
+$(OUT)/bsftest.exe: $(OUT)/bsftest.obj
+	wlink system dos4g name $@ option quiet file $(OUT)/bsftest.obj
+
+$(OUT)/coretest.obj: tests/coretest.c
+	$(CC) $(CFLAGS) -fo=$@ tests/coretest.c
+
+$(OUT)/coretest.exe: $(OUT)/coretest.obj $(OUT)/took.lib
+	wlink system dos4g name $@ option quiet &
+		file $(OUT)/coretest.obj library $(OUT)/took.lib
+
+clean: .SYMBOLIC
+	rm -rf $(OUT)
